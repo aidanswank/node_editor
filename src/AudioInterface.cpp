@@ -30,8 +30,8 @@ void myAudioCallback(void *udata, Uint8 *stream, int len)
 		// audioInterface->float_stream[i * 2]     = osc_output * 0.06;
 		// audioInterface->float_stream[i * 2 + 1] = osc_output * 0.06;
 
-		audioInterface->float_stream[i * 2]     = node_output[i/2]; //MONO for now
-		audioInterface->float_stream[i * 2 + 1] = node_output[i/2];
+		audioInterface->float_stream[i * 2]     = node_output[i]; //MONO for now
+		audioInterface->float_stream[i * 2 + 1] = node_output[i];
 
 	}
 

@@ -1,5 +1,6 @@
 #include "node_editor.h"
 #include "graph.h"
+#include "Oscillator.h"
 
 #include <imgui/imnodes.h>
 #include <imgui/imgui.h>
@@ -51,13 +52,13 @@ int buffer_size = 256;
 struct AudioNode
 {
     AudioNodeType type;
-    float *value;
+    void *value;
 
     explicit AudioNode(const AudioNodeType t) : type(t) {
         value = new float[buffer_size]();
     }
 
-    AudioNode(const AudioNodeType t, float* v) : type(t) {
+    AudioNode(const AudioNodeType t, void* v) : type(t) {
         value = v;
     }
 };
@@ -166,17 +167,13 @@ ImU32 evaluate(const Graph<Node>& graph, const int root_node)
     // i move it to the swtich statement to see if it would work, move back down later
 }
 
-// #include "Oscillator.h"
-
-// Oscillator osc;
-
 float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
 {
     std::stack<int> postorder;
     float* res = new float[buffer_size]();
 
     dfs_traverse(graph, root_node, [&postorder](const int node_id) -> void { postorder.push(node_id); });
-    std::stack<float*> value_stack;
+    std::stack<void*> value_stack;
     while (!postorder.empty())
     {
         const int id = postorder.top();
@@ -188,13 +185,22 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
         case AudioNodeType::sine:
         {
             // print("sine");
+
+            Oscillator *osc_ptr = (Oscillator*)value_stack.top();
+            // print("yooo",gain_arr[0]);
+            value_stack.pop();
+
             float* output = new float[buffer_size]();
             for(int i = 0; i < buffer_size; i++)
             {
                 // std::cout << mb->tracks[0].stream[0][i] << std::endl;
-                float whitenoise = rand() % 100;
-                whitenoise = whitenoise / 100;
-                output[i]  = whitenoise * 0.06;
+                double osc_output =  osc_ptr->nextSample() * 0.06;
+
+                // float whitenoise = rand() % 100;
+                // whitenoise = whitenoise / 100;
+                // output[i]  = whitenoise * 0.06;
+
+                output[i] = osc_output;
             }
             value_stack.push(output);
         }
@@ -207,7 +213,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
             // the value comes from the node's UI.
             if (graph.num_edges_from_node(id) == 0ull)
             {
-                value_stack.push(node.value);
+                value_stack.push((void*)node.value);
                 // print("node val",node.value);
             }
         }
@@ -218,11 +224,11 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
             if(value_stack.size() == 2ull)
             {
 
-                float *gain_arr = value_stack.top();
+                float *gain_arr = (float*)value_stack.top();
                 // print("yooo",gain_arr[0]);
                 value_stack.pop();
 
-                res = value_stack.top();
+                res = (float*)value_stack.top();
                 value_stack.pop();
      
                 for(int i = 0; i < buffer_size; i++)
@@ -365,9 +371,17 @@ public:
                     // const AudioNode value(AudioNodeType::value, arr);
                     // const AudioNode op(AudioNodeType::sine);
 
+                    Oscillator *osc = new Oscillator();
+                    osc->setMode(Oscillator::OSCILLATOR_MODE_SINE);
+
+                    const AudioNode osc_node(AudioNodeType::value, (void*)osc);
+
                     AudioUiNode audio_ui_node;
                     audio_ui_node.type = AudioUiNodeType::sine;
                     audio_ui_node.id = audio_graph_.insert_node( AudioNode(AudioNodeType::sine) );
+                    audio_ui_node.ui.sine.osc = audio_graph_.insert_node( osc_node ); // id of node
+
+                    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc);
 
                     audio_nodes_.push_back(audio_ui_node);
 
@@ -387,7 +401,7 @@ public:
                     AudioUiNode audio_ui_node;
                     audio_ui_node.type = AudioUiNodeType::output;
                     audio_ui_node.ui.output.input = audio_graph_.insert_node(value);
-                    audio_ui_node.ui.output.gain = audio_graph_.insert_node(gain);
+                    audio_ui_node.ui.output.gain = audio_graph_.insert_node(gain); // data storage
                     audio_ui_node.id = audio_graph_.insert_node(out);
 
                     audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.output.input);
@@ -832,7 +846,8 @@ public:
                 // // {
                 //     print("value!!",audio_graph_.node(node.ui.output.gain).value[0]);
                 // // }
-                ImGui::DragFloat("gain", &audio_graph_.node(node.ui.output.gain).value[0], 0.01f, 0.f, 1.0f);
+                float* fa_gain_stupid = (float*)audio_graph_.node(node.ui.output.gain).value;
+                ImGui::DragFloat("gain", &fa_gain_stupid[0], 0.01f, 0.f, 1.0f);
                 ImGui::PopItemWidth();
 
                 ImNodes::EndNode();
@@ -1128,6 +1143,10 @@ public:
                 int input;
                 int gain;
             } output; 
+            struct
+            {
+                int osc;
+            } sine; 
         } ui;
     };
 

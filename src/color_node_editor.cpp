@@ -33,7 +33,8 @@ enum class AudioNodeType
 {
     value,  //0
     sine,   //1
-    output  //2
+    white,  //2
+    output  //3
 };
 
 // template<typename DataType>
@@ -193,7 +194,6 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
             float* output = new float[buffer_size]();
             for(int i = 0; i < buffer_size; i++)
             {
-                // std::cout << mb->tracks[0].stream[0][i] << std::endl;
                 double osc_output =  osc_ptr->nextSample() * 0.06;
 
                 // float whitenoise = rand() % 100;
@@ -201,6 +201,21 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
                 // output[i]  = whitenoise * 0.06;
 
                 output[i] = osc_output;
+            }
+            value_stack.push(output);
+        }
+        break;
+        case AudioNodeType::white:
+        {
+            float* output = new float[buffer_size]();
+            for(int i = 0; i < buffer_size; i++)
+            {
+
+                float whitenoise = rand() % 100;
+                whitenoise = whitenoise / 100;
+
+                output[i]  = whitenoise * 0.06;
+
             }
             value_stack.push(output);
         }
@@ -382,6 +397,21 @@ public:
                     audio_ui_node.ui.sine.osc = audio_graph_.insert_node( osc_node ); // id of node
 
                     audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc);
+
+                    audio_nodes_.push_back(audio_ui_node);
+
+                    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
+                }
+
+              if (ImGui::MenuItem("AudioWhiteNoise"))
+                {
+
+                    AudioUiNode audio_ui_node;
+                    audio_ui_node.type = AudioUiNodeType::white;
+                    audio_ui_node.id = audio_graph_.insert_node( AudioNode(AudioNodeType::white) );
+                    // audio_ui_node.ui.sine.osc = audio_graph_.insert_node( osc_node ); // id of node
+
+                    // audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc);
 
                     audio_nodes_.push_back(audio_ui_node);
 
@@ -827,6 +857,21 @@ public:
                 ImNodes::EndNode();
             }
             break;
+            case AudioUiNodeType::white:
+            {
+                ImNodes::BeginNode(node.id);
+
+                ImNodes::BeginNodeTitleBar();
+                ImGui::TextUnformatted("white noise");
+                ImNodes::EndNodeTitleBar();
+
+                ImNodes::BeginOutputAttribute(node.id);
+                ImGui::Text("output");
+                ImNodes::EndOutputAttribute();
+
+                ImNodes::EndNode();
+            }
+            break;
             case AudioUiNodeType::output:
             {
                 const float node_width = 100.0f;
@@ -1126,6 +1171,7 @@ public:
     {
         output,
         sine,
+        white
     };
 
     struct AudioUiNode

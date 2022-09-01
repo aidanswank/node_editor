@@ -15,7 +15,7 @@ void myAudioCallback(void *udata, Uint8 *stream, int len)
     node_output = example::NodeEditorAudioCallback();
     // printf("fa %i",faLen);
 
-    audioInterface->osc.setFrequency(440.0);
+    // audioInterface->osc.setFrequency(440.0);
 	for (int i = 0; i < faLen; ++i)
 	{
 		// // std::cout << mb->tracks[0].stream[0][i] << std::endl;

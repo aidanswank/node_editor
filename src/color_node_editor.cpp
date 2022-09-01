@@ -188,11 +188,25 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
         {
             // print("sine");
 
+            int* osc_type_ptr = (int*)value_stack.top();
+            int osc_type_num = *osc_type_ptr;
+            value_stack.pop();
+            print("osc type",osc_type_num);
+
+            float* slider_ptr = (float*)value_stack.top();
+            float freq = *slider_ptr;
+            value_stack.pop();
+            // print("yooo",freq);
+
             Oscillator *osc_ptr = (Oscillator*)value_stack.top();
             // print("yooo",gain_arr[0]);
             value_stack.pop();
 
+
             float* output = new float[buffer_size]();
+            osc_ptr->setFrequency(freq);
+            osc_ptr->setMode((Oscillator::OscillatorMode)osc_type_num);
+            
             for(int i = 0; i < buffer_size; i++)
             {
                 double osc_output =  osc_ptr->nextSample() * 0.06;
@@ -225,18 +239,23 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
         {
             float* output = new float[buffer_size]();
 
+            float *slider_ptr = (float*)value_stack.top();
+            value_stack.pop();
+
             float* input_a = (float*)value_stack.top();
             value_stack.pop();
 
             float* input_b = (float*)value_stack.top();
             value_stack.pop();
 
-            // float amount = 0.5;
+            print("size",value_stack.size(),"a",*input_a,"b",*input_b,"slide",*slider_ptr);
+
+            float amount = *slider_ptr;
 
             for(int i = 0; i < buffer_size; i++)
             {
 
-                output[i]  = (input_a[i] * 0.5) + (input_b[i] * 0.5);
+                output[i]  = (input_a[i] * amount) + (input_b[i] * (1.0-amount));
             }
 
             value_stack.push(output);
@@ -298,6 +317,32 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
 
     return res;
 }
+
+void comboBox(const char *name, std::vector<std::string> &itemNames, int*& selectChoice)
+{
+    const char * currentName = itemNames[*selectChoice].c_str();
+
+    if (ImGui::BeginCombo(name, currentName)) // The second parameter is the label previewed before opening the combo.
+    {
+        for (int n = 0; n < itemNames.size(); n++)
+        {
+            bool is_selected = (currentName == itemNames[n].c_str()); // You can store your selection however you want, outside or inside your objects
+            if (ImGui::Selectable(itemNames[n].c_str(), is_selected))
+            {
+                currentName = itemNames[n].c_str();
+                print(currentName,"selected",n);
+                *selectChoice = n;
+                // audioInterface->turnDeviceOn( audioInterface->openDevice(n,0) );
+            }
+            // if (is_selected)
+            // {
+            //     print("is selected");
+            //     // ImGui::SetItemDefaultFocus(); // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
+            // }
+        }
+        ImGui::EndCombo();
+    }
+};
 
 class ColorNodeEditor
 {
@@ -369,17 +414,17 @@ public:
             ImGui::EndMenuBar();
         }
 
-        ImGui::TextUnformatted("Edit the color of the output color window using nodes.");
-        ImGui::Columns(2);
-        ImGui::TextUnformatted("A -- add node");
-        ImGui::TextUnformatted("X -- delete selected node or link");
-        ImGui::NextColumn();
-        if (ImGui::Checkbox("emulate_three_button_mouse", &emulate_three_button_mouse))
-        {
-            ImNodes::GetIO().EmulateThreeButtonMouse.Modifier =
-                emulate_three_button_mouse ? &ImGui::GetIO().KeyAlt : NULL;
-        }
-        ImGui::Columns(1);
+        // ImGui::TextUnformatted("Edit the color of the output color window using nodes.");
+        // ImGui::Columns(2);
+        // ImGui::TextUnformatted("A -- add node");
+        // ImGui::TextUnformatted("X -- delete selected node or link");
+        // ImGui::NextColumn();
+        // if (ImGui::Checkbox("emulate_three_button_mouse", &emulate_three_button_mouse))
+        // {
+        //     ImNodes::GetIO().EmulateThreeButtonMouse.Modifier =
+        //         emulate_three_button_mouse ? &ImGui::GetIO().KeyAlt : NULL;
+        // }
+        // ImGui::Columns(1);
 
         ImNodes::BeginNodeEditor();
 
@@ -409,17 +454,26 @@ public:
                     // const AudioNode op(AudioNodeType::sine);
 
                     Oscillator *osc = new Oscillator();
-                    osc->setMode(Oscillator::OSCILLATOR_MODE_SINE);
+                    osc->setMode(Oscillator::OSCILLATOR_MODE_SAW);
                     osc->setSampleRate(44100);
 
+                    float *freq_num = new float(440.0f);
+                    // *freq_num = 440.0f;
                     const AudioNode osc_node(AudioNodeType::value, (void*)osc);
+                    const AudioNode freq_node(AudioNodeType::value, (void*)freq_num);
+
+                    const AudioNode osc_type_node(AudioNodeType::value, (void*)new int(0));
 
                     AudioUiNode audio_ui_node;
                     audio_ui_node.type = AudioUiNodeType::sine;
                     audio_ui_node.id = audio_graph_.insert_node( AudioNode(AudioNodeType::sine) );
                     audio_ui_node.ui.sine.osc = audio_graph_.insert_node( osc_node ); // id of node
+                    audio_ui_node.ui.sine.freq = audio_graph_.insert_node( freq_node ); // id of node
+                    audio_ui_node.ui.sine.osc_type = audio_graph_.insert_node( osc_type_node ); // id of node
 
                     audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc);
+                    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.freq);
+                    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc_type);
 
                     audio_nodes_.push_back(audio_ui_node);
 
@@ -451,10 +505,12 @@ public:
                     ui_node.type = AudioUiNodeType::xfader;
                     ui_node.ui.xfader.input_a = audio_graph_.insert_node(value);
                     ui_node.ui.xfader.input_b = audio_graph_.insert_node(value);
+                    ui_node.ui.xfader.amount = audio_graph_.insert_node(value);
                     ui_node.id = audio_graph_.insert_node(op);
 
                     audio_graph_.insert_edge(ui_node.id, ui_node.ui.xfader.input_a);
                     audio_graph_.insert_edge(ui_node.id, ui_node.ui.xfader.input_b);
+                    audio_graph_.insert_edge(ui_node.id, ui_node.ui.xfader.amount);
 
                     audio_nodes_.push_back(ui_node);
                     ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
@@ -889,12 +945,26 @@ public:
                 ImNodes::BeginNode(node.id);
 
                 ImNodes::BeginNodeTitleBar();
-                ImGui::TextUnformatted("sine");
+                ImGui::TextUnformatted("sig gen");
                 ImNodes::EndNodeTitleBar();
 
                 ImNodes::BeginOutputAttribute(node.id);
                 ImGui::Text("output");
                 ImNodes::EndOutputAttribute();
+
+                ImGui::PushItemWidth(100.f);
+
+                static std::vector<std::string> names = {"sine","saw","square","triangle"};
+                static const char *current_outputDeviceName = 0;
+
+                float*  freq_num    = (float*)  audio_graph_.node(node.ui.sine.freq).value;
+                int*    sc_type_num = (int*)    audio_graph_.node(node.ui.sine.osc_type).value;
+                comboBox("osc type", names, sc_type_num);
+                // print("yooo", *sc_type_num);
+
+                ImGui::DragFloat("freq", &*freq_num, 2.0f, 1.f, 1000.0f);
+               
+                ImGui::PopItemWidth();
 
                 ImNodes::EndNode();
             }
@@ -923,6 +993,7 @@ public:
                 ImGui::TextUnformatted("xfader");
                 ImNodes::EndNodeTitleBar();
 
+
                 {
                     ImNodes::BeginInputAttribute(node.ui.xfader.input_a);
                     const float label_width = ImGui::CalcTextSize("a").x;
@@ -930,12 +1001,18 @@ public:
                     ImNodes::EndInputAttribute();
                 }
 
+
                 {
                     ImNodes::BeginInputAttribute(node.ui.xfader.input_b);
                     const float label_width = ImGui::CalcTextSize("b").x;
                     ImGui::TextUnformatted("b");
                     ImNodes::EndInputAttribute();
                 }
+
+                ImGui::PushItemWidth(node_width);
+                float* amount_ptr = (float*)audio_graph_.node(node.ui.xfader.amount).value;
+                ImGui::DragFloat("##hidelabel", &amount_ptr[0], 0.01f, 0.f, 1.0f);
+                ImGui::PushItemWidth(node_width);
 
                 ImNodes::BeginOutputAttribute(node.id);
                 ImGui::Text("out");
@@ -965,7 +1042,7 @@ public:
                 //     print("value!!",audio_graph_.node(node.ui.output.gain).value[0]);
                 // // }
                 float* fa_gain_stupid = (float*)audio_graph_.node(node.ui.output.gain).value;
-                ImGui::DragFloat("gain", &fa_gain_stupid[0], 0.01f, 0.f, 1.0f);
+                ImGui::DragFloat("gain", &*fa_gain_stupid, 0.01f, 0.f, 1.0f);
                 ImGui::PopItemWidth();
 
                 ImNodes::EndNode();
@@ -1267,12 +1344,15 @@ public:
             struct
             {
                 int osc;
+                int osc_type;
+                int freq;
             } sine; 
 
             struct
             {
                 int input_a;
                 int input_b;
+                int amount;
             } xfader;
 
         } ui;

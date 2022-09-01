@@ -176,12 +176,12 @@ void CustomImGui::Update()
 
     example::NodeEditorShow();
 
+    // ImGui::ShowDemoWindow();
     if (audio_settings_open)
     {
         AudioSettings(&audio_settings_open);
         // std::cout << audio_settings_open << std::endl;
     }
-    // ImGui::ShowDemoWindow();
 
     ImGui::End();
 };

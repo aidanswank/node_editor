@@ -31,10 +31,11 @@ enum class NodeType
 
 enum class AudioNodeType
 {
-    value,  //0
-    sine,   //1
-    white,  //2
-    output  //3
+    value,
+    sine,
+    white,
+    xfader,
+    output 
 };
 
 // template<typename DataType>
@@ -220,6 +221,27 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
             value_stack.push(output);
         }
         break;
+        case AudioNodeType::xfader:
+        {
+            float* output = new float[buffer_size]();
+
+            float* input_a = (float*)value_stack.top();
+            value_stack.pop();
+
+            float* input_b = (float*)value_stack.top();
+            value_stack.pop();
+
+            // float amount = 0.5;
+
+            for(int i = 0; i < buffer_size; i++)
+            {
+
+                output[i]  = (input_a[i] * 0.5) + (input_b[i] * 0.5);
+            }
+
+            value_stack.push(output);
+        }
+        break;
         case AudioNodeType::value:
         {
             // print("value");
@@ -232,7 +254,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
                 // print("node val",node.value);
             }
         }
-        // break;
+        break;
         case AudioNodeType::output:
             // print("out");
             // assert(value_stack.size() == 1ull);
@@ -248,7 +270,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
      
                 for(int i = 0; i < buffer_size; i++)
                 {
-                    res[i] *= gain_arr[0];
+                    res[i] *= (*gain_arr); // accessing [0]
                 }
 
             }
@@ -388,6 +410,7 @@ public:
 
                     Oscillator *osc = new Oscillator();
                     osc->setMode(Oscillator::OSCILLATOR_MODE_SINE);
+                    osc->setSampleRate(44100);
 
                     const AudioNode osc_node(AudioNodeType::value, (void*)osc);
 
@@ -403,7 +426,7 @@ public:
                     ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
                 }
 
-              if (ImGui::MenuItem("AudioWhiteNoise"))
+                if (ImGui::MenuItem("AudioWhiteNoise"))
                 {
 
                     AudioUiNode audio_ui_node;
@@ -416,6 +439,25 @@ public:
                     audio_nodes_.push_back(audio_ui_node);
 
                     ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
+                }
+
+                if (ImGui::MenuItem("AudioXfader"))
+                {
+                    float* arr = new float[buffer_size]();
+                    const AudioNode value(AudioNodeType::value, arr);
+                    const AudioNode op(AudioNodeType::xfader);
+
+                    AudioUiNode ui_node;
+                    ui_node.type = AudioUiNodeType::xfader;
+                    ui_node.ui.xfader.input_a = audio_graph_.insert_node(value);
+                    ui_node.ui.xfader.input_b = audio_graph_.insert_node(value);
+                    ui_node.id = audio_graph_.insert_node(op);
+
+                    audio_graph_.insert_edge(ui_node.id, ui_node.ui.xfader.input_a);
+                    audio_graph_.insert_edge(ui_node.id, ui_node.ui.xfader.input_b);
+
+                    audio_nodes_.push_back(ui_node);
+                    ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
                 }
 
                 if (ImGui::MenuItem("AudioOutput") && audio_root_node_id_ == -1)
@@ -872,6 +914,37 @@ public:
                 ImNodes::EndNode();
             }
             break;
+            case AudioUiNodeType::xfader:
+            {
+                const float node_width = 100.0f;
+                ImNodes::BeginNode(node.id);
+
+                ImNodes::BeginNodeTitleBar();
+                ImGui::TextUnformatted("xfader");
+                ImNodes::EndNodeTitleBar();
+
+                {
+                    ImNodes::BeginInputAttribute(node.ui.xfader.input_a);
+                    const float label_width = ImGui::CalcTextSize("a").x;
+                    ImGui::TextUnformatted("a");
+                    ImNodes::EndInputAttribute();
+                }
+
+                {
+                    ImNodes::BeginInputAttribute(node.ui.xfader.input_b);
+                    const float label_width = ImGui::CalcTextSize("b").x;
+                    ImGui::TextUnformatted("b");
+                    ImNodes::EndInputAttribute();
+                }
+
+                ImNodes::BeginOutputAttribute(node.id);
+                ImGui::Text("out");
+                ImNodes::EndOutputAttribute();
+
+                ImNodes::EndNode();
+
+            }
+            break;
             case AudioUiNodeType::output:
             {
                 const float node_width = 100.0f;
@@ -1171,7 +1244,8 @@ public:
     {
         output,
         sine,
-        white
+        white,
+        xfader
     };
 
     struct AudioUiNode
@@ -1189,10 +1263,18 @@ public:
                 int input;
                 int gain;
             } output; 
+            
             struct
             {
                 int osc;
             } sine; 
+
+            struct
+            {
+                int input_a;
+                int input_b;
+            } xfader;
+
         } ui;
     };
 

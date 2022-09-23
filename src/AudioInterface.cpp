@@ -1,5 +1,7 @@
 #include "AudioInterface.h"
 
+float* node_output = new float[512*2]();
+
 void myAudioCallback(void *udata, Uint8 *stream, int len)
 {
     // printf("?????");
@@ -9,9 +11,9 @@ void myAudioCallback(void *udata, Uint8 *stream, int len)
     Sint16 *str = (Sint16 *)stream;	
 
     int faLen = (len / sizeof(Sint16) / 2); // float array len per channel
-    float *mystream = new float[faLen*2]();
+    // float *mystream = new float[faLen*2]();
 
-    float* node_output = new float[faLen*2]();
+//     float* node_output = new float[faLen*2]();
     node_output = example::NodeEditorAudioCallback();
     // printf("fa %i",faLen);
 
@@ -44,6 +46,40 @@ void myAudioCallback(void *udata, Uint8 *stream, int len)
 
 }
 
+//Recording data buffer
+Uint8* gRecordingBuffer = NULL;
+
+//Size of data buffer
+Uint32 gBufferByteSize = 0;
+
+//Position in data buffer
+Uint32 gBufferBytePosition = 0;
+
+//Recieved audio spec
+SDL_AudioSpec gReceivedRecordingSpec;
+SDL_AudioSpec gReceivedPlaybackSpec;
+
+void audioRecordingCallback( void* userdata, Uint8* stream, int len )
+{
+    //Copy audio from stream
+    memcpy( &gRecordingBuffer[ gBufferBytePosition ], stream, len );
+
+    float *recbuf = (float *)gRecordingBuffer;    // cast Uint8 to Sint16;
+
+    int faLen = (len / sizeof(Sint16) / 2); // float array len per channel
+
+//    std::cout << faLen << std::endl;
+    printf("falen%i",faLen);
+    for(int i = 0; i < faLen; ++i)
+    {
+        // gRecordingBuffer[ gBufferBytePosition ]
+        printf("%f",recbuf[i*2]);
+    }
+    //Move along buffer
+    gBufferBytePosition += len;
+}
+
+
 AudioInterface::AudioInterface()
 {
     if (SDL_Init(SDL_INIT_AUDIO) < 0)
@@ -67,8 +103,13 @@ AudioInterface::AudioInterface()
 	spec.callback = myAudioCallback;
 	spec.userdata = this; // cast from void pointer later in myAudioCallback
 
-    osc.setMode(Oscillator::OSCILLATOR_MODE_SINE);
-
+//    osc.setMode(Oscillator::OSCILLATOR_MODE_SINE);
+    
+//    gRecordingBuffer = new Uint8[ gBufferByteSize ];
+//    memset( gRecordingBuffer, 0, gBufferByteSize );
+    
+    openInputDevice();
+    
 }
 
 AudioInterface::~AudioInterface()
@@ -82,13 +123,16 @@ void AudioInterface::turnDeviceOn(int device)
 	// printf("starting audio device...\n");
 }
 
+#include "vprint.h"
+
 void AudioInterface::scanAudioDevices()
 {
     inputDeviceNames.clear();
     outputDeviceNames.clear();
 
-    num_audio_input_devices = SDL_GetNumAudioDevices(0);
-    // print("num_audio_input_devices", num_audio_input_devices);
+    num_audio_input_devices = SDL_GetNumAudioDevices(1);
+    
+     print("num_audio_input_devices", num_audio_input_devices);
     for (int i = 0; i < num_audio_input_devices; i++)
     {
         const char *str = SDL_GetAudioDeviceName(i, 1);
@@ -97,14 +141,44 @@ void AudioInterface::scanAudioDevices()
     };
     // printf("wtf\n");
 
-    num_audio_output_devices = SDL_GetNumAudioDevices(1);
+    num_audio_output_devices = SDL_GetNumAudioDevices(0);
     for (int i = 0; i < num_audio_output_devices; i++)
     {
         const char *str = SDL_GetAudioDeviceName(i, 0);
         outputDeviceNames.push_back(str);
-        printf("%i in device %s\n", i, str);
+        printf("%i out device %s\n", i, str);
     };
 
+}
+
+void AudioInterface::openInputDevice()
+{
+    //Default audio spec
+    SDL_AudioSpec desiredRecordingSpec;
+    SDL_zero(desiredRecordingSpec);
+    desiredRecordingSpec.freq = 44100;
+    desiredRecordingSpec.format = AUDIO_F32;
+    desiredRecordingSpec.channels = 2;
+    desiredRecordingSpec.samples = 4096;
+    desiredRecordingSpec.callback = audioRecordingCallback;
+
+    //Open recording device
+    recordingDeviceId = SDL_OpenAudioDevice( SDL_GetAudioDeviceName( 1, SDL_TRUE ), SDL_TRUE, &desiredRecordingSpec, &gReceivedRecordingSpec, SDL_AUDIO_ALLOW_FORMAT_CHANGE );
+    
+//    SDL_PauseAudioDevice(recordingDeviceId,1);
+    //Device failed to open
+    if( recordingDeviceId == 0 )
+    {
+        //Report error
+        printf( "Failed to open recording device! SDL Error: %s", SDL_GetError() );
+//        gPromptTexture.loadFromRenderedText( "Failed to open recording device!", gTextColor );
+//        currentState = ERROR;
+    }
+    
+    SDL_PauseAudioDevice(recordingDeviceId,true);
+    
+    printf("recording device id %i\n", recordingDeviceId);
+    
 }
 
 int AudioInterface::openDevice(int device, int isCapture)
@@ -114,7 +188,8 @@ int AudioInterface::openDevice(int device, int isCapture)
     // printf("ajjjjj %s \n",SDL_GetAudioDeviceName(device, 0));
 
     int old_device_id = device_id;
-	device_id = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(device, 0), isCapture, &spec, &obtained, 0);
+	device_id = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(device, isCapture), isCapture, &spec, &obtained, 0);
+    
 	if (device_id == 0)
 	{
 		// TODO: Proper error handling
@@ -122,14 +197,15 @@ int AudioInterface::openDevice(int device, int isCapture)
 	} else {
         printf("success? %i\n",device_id);
     }
-    printf("%i ",obtained.freq);
+//    printf("%i ",obtained.freq);
 
     // turn off old device when switching
     if(old_device_id!=0)
     {
         SDL_CloseAudioDevice(old_device_id);
     }
-    SDL_PauseAudioDevice(device_id,0);
+    
+    SDL_PauseAudioDevice(device_id,isCapture);
 
     return device_id;
 }

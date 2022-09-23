@@ -1,0 +1,12 @@
+{
+    "name": "myproject",
+    "version-string": "0.1.0-dev",
+    "dependencies": [
+        "sdl2",
+        "nlohmann-json",
+        {
+          "name": "imgui",
+          "features": [ "sdl2-binding", "opengl3-binding", "docking-experimental" ]
+        }
+    ]
+}

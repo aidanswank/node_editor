@@ -12,7 +12,9 @@ public:
     {
         Initialize();
         while(running)
+        {
             Frame();
+        }
         Shutdown();
     };
     

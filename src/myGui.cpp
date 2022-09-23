@@ -4,7 +4,6 @@
 // #include "j2s.h"
 
 #include "node_editor.h"
-#include "node_editor2.h"
 
 CustomImGui::CustomImGui()
 {
@@ -28,7 +27,7 @@ void CustomImGui::Attach(bool *p_main_running)
     audioInterface->openDevice(1,0);
 };
 
-void CustomImGui::DropDownMenu(const char *name, std::vector<std::string> &itemNames, const char *&current_item)
+void CustomImGui::DropDownMenu(const char *name, std::vector<std::string> &itemNames, const char *&current_item, int isCapture)
 {
     
     if (ImGui::BeginCombo(name, current_item)) // The second parameter is the label previewed before opening the combo.
@@ -39,8 +38,9 @@ void CustomImGui::DropDownMenu(const char *name, std::vector<std::string> &itemN
             if (ImGui::Selectable(itemNames[n].c_str(), is_selected))
             {
                 current_item = itemNames[n].c_str();
-                print(current_item,"selected",n);
-                audioInterface->turnDeviceOn( audioInterface->openDevice(n,0) );
+//                print(current_item,"selected",n);
+                audioInterface->openDevice(n, isCapture);
+//                audioInterface->turnDeviceOn( audioInterface->openDevice(n,0) );
             }
             if (is_selected)
             {
@@ -62,10 +62,10 @@ void CustomImGui::AudioSettings(bool *p_audioSettingsOpen)
     }
 
     static const char *current_outputDeviceName = NULL;
-    DropDownMenu("output devices", audioInterface->outputDeviceNames, current_outputDeviceName);
+    DropDownMenu("output devices", audioInterface->outputDeviceNames, current_outputDeviceName, 0);
 
     static const char *current_inputDeviceName = NULL;
-    DropDownMenu("input devices", audioInterface->inputDeviceNames, current_inputDeviceName);
+    DropDownMenu("input devices", audioInterface->inputDeviceNames, current_inputDeviceName, 1);
 
     ImGui::End();
 };
@@ -116,6 +116,9 @@ void CustomImGui::Shutdown2()
     example::NodeEditorShutdown();
 }
 
+#include <iostream>
+#include <fstream>
+
 void CustomImGui::Update()
 {
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
@@ -137,14 +140,21 @@ void CustomImGui::Update()
     ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
     ImGui::PopStyleVar();
 
-    // Submit the DockSpace
+//    // Submit the DockSpace
     ImGuiIO &io = ImGui::GetIO();
+//    io.IniFilename = "/Users/aidan/imgui.ini";
+
     if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
     {
         ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
     }
-
+    
+//    ofstream myfile;
+//    myfile.open ("example.txt");
+//    std::ifstream *myfile = new std::ifstream();
+//    myfile->open("/Users/aidan/imgui.ini");
+    
     if (ImGui::BeginMenuBar())
     {
         if (ImGui::BeginMenu("File"))

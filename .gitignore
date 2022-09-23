@@ -1,3 +1,5 @@
 /vendor
-*.txt
 /res
+/old_stuff
+/build
+imgui.ini

@@ -14,10 +14,13 @@ public:
     void turnDeviceOn(int device);
     int openDevice(int device, int isCapture);
     void scanAudioDevices();
+    
+    void openInputDevice();
 
 // private:
     float* float_stream;
     int device_id = 0;
+    int recordingDeviceId = 0;
     int buffer_size;
     int sample_rate;
 
@@ -29,5 +32,5 @@ public:
 	SDL_AudioSpec spec;
 
     // testing!!!!
-    Oscillator osc;
+//    Oscillator osc;
 };

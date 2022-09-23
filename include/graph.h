@@ -354,6 +354,7 @@ void dfs_traverse(const Graph<NodeType>& graph, const int start_node, Visitor vi
         for (const int neighbor : graph.neighbors(current_node))
         {
             stack.push(neighbor);
+            // printf("push neighbor %i \n",neighbor);
         }
     }
 }

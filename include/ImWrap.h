@@ -1,8 +1,8 @@
-#include <imgui/imgui.h>
-#include <imgui/imgui_stdlib.h>
-#include <imgui/imgui_impl_sdl.h>
-#include <imgui/imgui_impl_opengl3.h>
-#include "imgui/imnodes.h"
+#include <imgui.h>
+#include <imgui_stdlib.h>
+#include <imgui_impl_sdl.h>
+#include <imgui_impl_opengl3.h>
+#include "imnodes.h"
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <iostream>

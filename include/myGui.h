@@ -3,7 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 // #include "Node.h"
 using json = nlohmann::json;
 
@@ -26,7 +26,7 @@ struct CustomImGui : public ImWrap
     AudioInterface *audioInterface;
 
     CustomImGui();
-    void DropDownMenu(const char *name, std::vector<std::string> &itemNames, const char *&current_item);
+    void DropDownMenu(const char *name, std::vector<std::string> &itemNames, const char *&current_item, int isCapture);
     void AudioSettings(bool *p_audioSettingsOpen);
     void save();
     void load();

@@ -1,0 +1,19 @@
+# INSANELY STUPID BUILD PROCESSES # 23/9/22
+first install two versions of homebrew, one for arm and one for x86_64
+this is needed because in order to use most VST3, they need to be run under rosetta emulation
+https://stackoverflow.com/questions/64951024/how-can-i-run-two-isolated-installations-of-homebrew
+brow install cmake
+  ^
+
+git clone https://github.com/Microsoft/vcpkg.git
+run:
+!!!     this will fail but attempt to wrangle x86_64 versions of libraries needed      !!!
+ib cmake -B build/ . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -GXcode
+then rerun the command but without the "ib", I'm not sure why this works but I think arm version of cmake picks off where x86_64 version stopped?
+
+
+this doesnt work vvvv
+if not using xcode, to build with unix makefiles:
+cmake --build build
+
+

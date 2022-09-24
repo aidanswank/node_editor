@@ -17,6 +17,7 @@
 
 #include "NodeDefs.h"
 
+
 namespace example
 {
 namespace
@@ -32,6 +33,7 @@ static float current_time_seconds = 0.f;
 static bool  emulate_three_button_mouse = false;
 
 float* res = new float[buffer_size]();
+
 float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
 {
 //    float* res;
@@ -47,7 +49,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
 
         switch (node.type)
         {
-        case AudioUiNodeType::interface_in:
+        case NodeType::interface_in:
         {
             // print("white!!");
 
@@ -67,7 +69,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
 
         }
         break;
-        case AudioUiNodeType::vst:
+        case NodeType::vst:
         {
             float* output;
 
@@ -108,7 +110,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
             value_stack.push(left);
         }
         break;
-        case AudioUiNodeType::sine:
+        case NodeType::sine:
         {
             // print("sine");
 
@@ -148,7 +150,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
             value_stack.push(output);
         }
         break;
-        case AudioUiNodeType::waveviewer:
+        case NodeType::waveviewer:
         {
 //            print("wave viewer!!!!!");
             float* view_buf = (float*)value_stack.top();
@@ -168,7 +170,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
 
         }
         break;
-        case AudioUiNodeType::white:
+        case NodeType::white:
         {
             // print("white!!");
 
@@ -186,7 +188,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
             value_stack.push(output);
         }
         break;
-        case AudioUiNodeType::xfader:
+        case NodeType::xfader:
         {
             float* output = new float[buffer_size]();
 
@@ -212,7 +214,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
             value_stack.push(output);
         }
         break;
-        case AudioUiNodeType::value:
+        case NodeType::value:
         {
             // print("value");
             // If the edge does not have an edge connecting to another node, then just use the value
@@ -225,7 +227,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
             }
         }
         break;
-        case AudioUiNodeType::output:
+        case NodeType::output:
         {
             float *gain_arr = (float*)value_stack.top();
             // print("yooo",gain_arr[0]);
@@ -416,9 +418,9 @@ public:
 
                 if(ImGui::MenuItem("AudioInterfaceIn"))
                 {
-                    AudioUiNode audio_ui_node;
-                    audio_ui_node.type = AudioUiNodeType::interface_in;
-                    audio_ui_node.id = audio_graph_.insert_node( AudioNode(AudioUiNodeType::interface_in) );
+                    UiNode audio_ui_node;
+                    audio_ui_node.type = NodeType::interface_in;
+                    audio_ui_node.id = audio_graph_.insert_node( AudioNode(NodeType::interface_in) );
                     // audio_ui_node.ui.sine.osc = audio_graph_.insert_node( osc_node ); // id of node
 
                     // audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc);
@@ -470,12 +472,12 @@ public:
 
                     float* mono_buf = new float[256]();
 
-                    const AudioNode vst_node(AudioUiNodeType::value, (void*)vst);
-                    const AudioNode input_buf_node(AudioUiNodeType::value, (void*)mono_buf);
+                    const AudioNode vst_node(NodeType::value, (void*)vst);
+                    const AudioNode input_buf_node(NodeType::value, (void*)mono_buf);
 
-                    AudioUiNode ui_node;
-                    ui_node.type                = AudioUiNodeType::vst;
-                    ui_node.id                  = audio_graph_.insert_node( AudioNode(AudioUiNodeType::vst) );
+                    UiNode ui_node;
+                    ui_node.type                = NodeType::vst;
+                    ui_node.id                  = audio_graph_.insert_node( AudioNode(NodeType::vst) );
                     ui_node.ui.vst.vst_obj      = audio_graph_.insert_node( vst_node ); // id of node
                     ui_node.ui.vst.input_buf    = audio_graph_.insert_node( input_buf_node ); // id of node
 
@@ -503,15 +505,15 @@ public:
 
                     float *freq_num = new float(440.0f);
                     // *freq_num = 440.0f;
-                    const AudioNode osc_node(AudioUiNodeType::value, (void*)osc);
-                    const AudioNode freq_node(AudioUiNodeType::value, (void*)freq_num);
+                    const AudioNode osc_node(NodeType::value, (void*)osc);
+                    const AudioNode freq_node(NodeType::value, (void*)freq_num);
 
-                    const AudioNode osc_type_node(AudioUiNodeType::value, (void*)new int(0)); //type 0 sine
-                    const AudioNode osc_out_node(AudioUiNodeType::value, (void*)osc_output);
+                    const AudioNode osc_type_node(NodeType::value, (void*)new int(0)); //type 0 sine
+                    const AudioNode osc_out_node(NodeType::value, (void*)osc_output);
 
-                    AudioUiNode audio_ui_node;
-                    audio_ui_node.type = AudioUiNodeType::sine;
-                    audio_ui_node.id = audio_graph_.insert_node( AudioNode(AudioUiNodeType::sine) );
+                    UiNode audio_ui_node;
+                    audio_ui_node.type = NodeType::sine;
+                    audio_ui_node.id = audio_graph_.insert_node( AudioNode(NodeType::sine) );
                     audio_ui_node.ui.sine.osc = audio_graph_.insert_node( osc_node ); // id of node
                     audio_ui_node.ui.sine.freq = audio_graph_.insert_node( freq_node ); // id of node
                     audio_ui_node.ui.sine.osc_type = audio_graph_.insert_node( osc_type_node ); // id of node
@@ -530,9 +532,9 @@ public:
                 if (ImGui::MenuItem("AudioWhiteNoise"))
                 {
 
-                    AudioUiNode audio_ui_node;
-                    audio_ui_node.type = AudioUiNodeType::white;
-                    audio_ui_node.id = audio_graph_.insert_node( AudioNode(AudioUiNodeType::white) );
+                    UiNode audio_ui_node;
+                    audio_ui_node.type = NodeType::white;
+                    audio_ui_node.id = audio_graph_.insert_node( AudioNode(NodeType::white) );
                     // audio_ui_node.ui.sine.osc = audio_graph_.insert_node( osc_node ); // id of node
 
                     // audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc);
@@ -547,12 +549,12 @@ public:
                     float* arr = new float[buffer_size]();
                     float* amount_ptr = new float(0.5);
                     // print(*amount_ptr);
-                    const AudioNode value(AudioUiNodeType::value, arr);
-                    const AudioNode amount(AudioUiNodeType::value, amount_ptr);
-                    const AudioNode op(AudioUiNodeType::xfader);
+                    const AudioNode value(NodeType::value, arr);
+                    const AudioNode amount(NodeType::value, amount_ptr);
+                    const AudioNode op(NodeType::xfader);
 
-                    AudioUiNode ui_node;
-                    ui_node.type = AudioUiNodeType::xfader;
+                    UiNode ui_node;
+                    ui_node.type = NodeType::xfader;
                     ui_node.ui.xfader.input_a = audio_graph_.insert_node(value);
                     ui_node.ui.xfader.input_b = audio_graph_.insert_node(value);
                     ui_node.ui.xfader.amount = audio_graph_.insert_node(amount);
@@ -570,13 +572,13 @@ public:
                 {
                     print("audio ouput node");
                     float* arr = new float[buffer_size]();
-                    const AudioNode value(AudioUiNodeType::value, arr);
+                    const AudioNode value(NodeType::value, arr);
                     float* gain_ptr = new float(0.123);
-                    const AudioNode gain(AudioUiNodeType::value, gain_ptr);
-                    const AudioNode out(AudioUiNodeType::output);
+                    const AudioNode gain(NodeType::value, gain_ptr);
+                    const AudioNode out(NodeType::output);
 
-                    AudioUiNode audio_ui_node;
-                    audio_ui_node.type = AudioUiNodeType::output;
+                    UiNode audio_ui_node;
+                    audio_ui_node.type = NodeType::output;
                     audio_ui_node.ui.output.input = audio_graph_.insert_node(value);
                     audio_ui_node.ui.output.gain = audio_graph_.insert_node(gain); // data storage
                     audio_ui_node.id = audio_graph_.insert_node(out);
@@ -598,14 +600,14 @@ public:
                     arr[2] = 0.5;
                     arr[3] = 0.25;
 
-                    const AudioNode value(AudioUiNodeType::value, arr);
+                    const AudioNode value(NodeType::value, arr);
                     
-                    const AudioNode view_buf_node(AudioUiNodeType::value, new float[buffer_size]());
+                    const AudioNode view_buf_node(NodeType::value, new float[buffer_size]());
 
-                    const AudioNode op(AudioUiNodeType::waveviewer);
+                    const AudioNode op(NodeType::waveviewer);
 
-                    AudioUiNode audio_ui_node;
-                    audio_ui_node.type = AudioUiNodeType::waveviewer;
+                    UiNode audio_ui_node;
+                    audio_ui_node.type = NodeType::waveviewer;
                     audio_ui_node.ui.waveviewer.input = audio_graph_.insert_node(value);
                     audio_ui_node.ui.waveviewer.view_buf = audio_graph_.insert_node(view_buf_node);
                     audio_ui_node.id = audio_graph_.insert_node(op);
@@ -624,11 +626,11 @@ public:
             ImGui::PopStyleVar();
         }
 
-        for (const AudioUiNode& node : audio_nodes_)
+        for (const UiNode& node : audio_nodes_)
         {
             switch (node.type)
             {
-            case AudioUiNodeType::interface_in:
+            case NodeType::interface_in:
             {
                 ImNodes::BeginNode(node.id);
 
@@ -656,7 +658,7 @@ public:
                 ImNodes::EndNode();
             }
             break;
-            case AudioUiNodeType::vst:
+            case NodeType::vst:
             {
                 ImNodes::BeginNode(node.id);
 
@@ -683,7 +685,7 @@ public:
                 ImNodes::EndNode();
             }
             break;
-            case AudioUiNodeType::sine:
+            case NodeType::sine:
             {
                 ImNodes::BeginNode(node.id);
 
@@ -715,7 +717,7 @@ public:
                 ImNodes::EndNode();
             }
             break;
-            case AudioUiNodeType::white:
+            case NodeType::white:
             {
                 ImNodes::BeginNode(node.id);
 
@@ -733,7 +735,7 @@ public:
                 ImNodes::EndNode();
             }
             break;
-            case AudioUiNodeType::waveviewer:
+            case NodeType::waveviewer:
             {
                 ImNodes::BeginNode(node.id);
 
@@ -765,7 +767,7 @@ public:
                 ImNodes::EndNode();
             }
             break;
-            case AudioUiNodeType::xfader:
+            case NodeType::xfader:
             {
                 const float node_width = 100.0f;
                 ImNodes::BeginNode(node.id);
@@ -808,7 +810,7 @@ public:
 
             }
             break;
-            case AudioUiNodeType::output:
+            case NodeType::output:
             {
                 const float node_width = 100.0f;
 
@@ -863,7 +865,7 @@ public:
             //         "totype", (int)audio_graph_.node(edge.to).type,
             //         "toval", audio_graph_.node(edge.to).value
             //     );
-            if (audio_graph_.node(edge.from).type == AudioUiNodeType::value){
+            if (audio_graph_.node(edge.from).type == NodeType::value){
                 // print("skipped?");
                 // continue; // skip 1 iteration of the loop, not linking below
                 ImNodes::Link(edge.id, edge.from, edge.to);
@@ -883,8 +885,8 @@ public:
             if (ImNodes::IsLinkCreated(&start_attr, &end_attr))
             {
                 // print("hey!!!",start_attr, end_attr);
-                const AudioUiNodeType start_type = audio_graph_.node(start_attr).type;
-                const AudioUiNodeType end_type = audio_graph_.node(end_attr).type;
+                const NodeType start_type = audio_graph_.node(start_attr).type;
+                const NodeType end_type = audio_graph_.node(end_attr).type;
 
                 const bool valid_link = start_type != end_type;
                 if (valid_link)
@@ -892,7 +894,7 @@ public:
                     print("is valid link");
                     // Ensure the edge is always directed from the value to
                     // whatever produces the value
-                    if (start_type != AudioUiNodeType::value)
+                    if (start_type != NodeType::value)
                     {
                         std::swap(start_attr, end_attr);
                     }
@@ -938,13 +940,13 @@ public:
                 {
                     audio_graph_.erase_node(node_id);
                     auto iter = std::find_if(
-                        audio_nodes_.begin(), audio_nodes_.end(), [node_id](const AudioUiNode& node) -> bool {
+                        audio_nodes_.begin(), audio_nodes_.end(), [node_id](const UiNode& node) -> bool {
                             return node.id == node_id;
                         });
                     // Erase any additional internal nodes
                     switch (iter->type)
                     {
-                    case AudioUiNodeType::output:
+                    case NodeType::output:
                         audio_graph_.erase_node(iter->ui.output.input);
                         audio_root_node_id_ = -1;
                         break;
@@ -979,7 +981,7 @@ public:
     }
 
     Graph<AudioNode>       audio_graph_;
-    std::vector<AudioUiNode>    audio_nodes_;
+    std::vector<UiNode>    audio_nodes_;
     int                    root_node_id_;
     int                    audio_root_node_id_;
     ImNodesMiniMapLocation minimap_location_;

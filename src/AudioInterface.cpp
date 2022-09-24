@@ -108,7 +108,7 @@ AudioInterface::AudioInterface()
 //    gRecordingBuffer = new Uint8[ gBufferByteSize ];
 //    memset( gRecordingBuffer, 0, gBufferByteSize );
     
-    openInputDevice();
+//    openInputDevice();
     
 }
 

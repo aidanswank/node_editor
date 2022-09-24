@@ -10,6 +10,7 @@ using json = nlohmann::json;
 static bool dockspaceOpen = true;
 
 #include "AudioInterface.h"
+#include "my_interface.h"
 
 struct CustomImGui : public ImWrap
 {
@@ -23,7 +24,8 @@ struct CustomImGui : public ImWrap
     int current_id;
     int current_ui_id;
     // std::vector<Node> nodes;
-    AudioInterface *audioInterface;
+//    AudioInterface *audioInterface;
+    my_interface *audio_interface;
 
     CustomImGui();
     void DropDownMenu(const char *name, std::vector<std::string> &itemNames, const char *&current_item, int isCapture);

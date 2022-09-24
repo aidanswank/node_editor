@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(imgui CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
+find_package(portaudio CONFIG REQUIRED)
 
 # if(MSVC)
 #     add_compile_definitions(SDL_MAIN_HANDLED)
@@ -70,7 +71,7 @@ set(RESOURCE_FILES res/fonts/unifont-14.0.01.ttf)
 # set_source_files_properties("/Users/aidan/dev/js/dummy/assets/icon.icns" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
 
-target_link_libraries(MyProject imnodes SDL2::SDL2 base pluginterfaces sdk_common sdk)
+target_link_libraries(MyProject imnodes SDL2::SDL2 portaudio_static base pluginterfaces sdk_common sdk)
 
 # set(png_path "/Users/aidan/dev/js/dummy/assets/icon.icns")
 # target_sources(MyProject PUBLIC ${png_path})

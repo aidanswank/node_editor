@@ -19,8 +19,14 @@ void CustomImGui::Attach(bool *p_main_running)
 
     load();
 
-    audioInterface = new AudioInterface();
-    audioInterface->scanAudioDevices();
+//    audioInterface = new AudioInterface();
+//    audioInterface->scanAudioDevices();
+    
+    audio_interface = new my_interface();
+    audio_interface->scan_devices();
+    audio_interface->init_devices(44100, 256, 1, 2);
+    audio_interface->open_stream();
+
     
     example::NodeEditorInitialize();
 
@@ -39,7 +45,7 @@ void CustomImGui::DropDownMenu(const char *name, std::vector<std::string> &itemN
             {
                 current_item = itemNames[n].c_str();
 //                print(current_item,"selected",n);
-                audioInterface->openDevice(n, isCapture);
+//                audioInterface->openDevice(n, isCapture);
 //                audioInterface->turnDeviceOn( audioInterface->openDevice(n,0) );
             }
             if (is_selected)
@@ -58,14 +64,14 @@ void CustomImGui::AudioSettings(bool *p_audioSettingsOpen)
     if (ImGui::Button("scan devices"))
     {
         print("hey???");
-        audioInterface->scanAudioDevices();
+//        audioInterface->scanAudioDevices();
     }
 
     static const char *current_outputDeviceName = NULL;
-    DropDownMenu("output devices", audioInterface->outputDeviceNames, current_outputDeviceName, 0);
+//    DropDownMenu("output devices", audioInterface->outputDeviceNames, current_outputDeviceName, 0);
 
     static const char *current_inputDeviceName = NULL;
-    DropDownMenu("input devices", audioInterface->inputDeviceNames, current_inputDeviceName, 1);
+//    DropDownMenu("input devices", audioInterface->inputDeviceNames, current_inputDeviceName, 1);
 
     ImGui::End();
 };

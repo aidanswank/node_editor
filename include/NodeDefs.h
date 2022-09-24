@@ -1,4 +1,4 @@
-enum class AudioUiNodeType
+enum class NodeType
 {
     value,
     output,
@@ -10,9 +10,9 @@ enum class AudioUiNodeType
     interface_in,
 };
 
-struct AudioUiNode
+struct UiNode
 {
-    AudioUiNodeType type;
+    NodeType type;
     // The identifying id of the ui node. For add, multiply, sine, and time
     // this is the "operation" node id. The additional input nodes are
     // stored in the structs.
@@ -61,28 +61,16 @@ struct AudioUiNode
     } ui;
 };
 
-//enum class AudioNodeType
-//{
-//    output,
-//    value,
-//    sine,
-//    white,
-//    xfader,
-//    waveviewer,
-//    vst,
-//    interface_in
-//};
-
 int buffer_size = 256;
 
 struct AudioNode
 {
-    AudioUiNodeType type;
+    NodeType type;
     void *value;
 
-    explicit AudioNode(const AudioUiNodeType t) : type(t) {
+    explicit AudioNode(const NodeType t) : type(t) {
 //        value = new float[buffer_size]();
     }
 
-    AudioNode(const AudioUiNodeType t, void* v) : type(t), value(v) {}
+    AudioNode(const NodeType t, void* v) : type(t), value(v) {}
 };

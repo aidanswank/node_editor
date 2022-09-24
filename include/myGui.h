@@ -14,7 +14,7 @@ static bool dockspaceOpen = true;
 struct CustomImGui : public ImWrap
 {
 
-    bool *main_running;
+    bool *main_running; //main loop pointer
     // ugly?
     void Attach(bool *p_main_running);
 

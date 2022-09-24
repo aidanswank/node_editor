@@ -1,12 +1,13 @@
 enum class AudioUiNodeType
 {
+    value,
     output,
     sine,
     white,
     xfader,
     waveviewer,
     vst,
-    interface_in
+    interface_in,
 };
 
 struct AudioUiNode
@@ -60,28 +61,28 @@ struct AudioUiNode
     } ui;
 };
 
-enum class AudioNodeType
-{
-    output,
-    value,
-    sine,
-    white,
-    xfader,
-    waveviewer,
-    vst,
-    interface_in
-};
+//enum class AudioNodeType
+//{
+//    output,
+//    value,
+//    sine,
+//    white,
+//    xfader,
+//    waveviewer,
+//    vst,
+//    interface_in
+//};
 
 int buffer_size = 256;
 
 struct AudioNode
 {
-    AudioNodeType type;
+    AudioUiNodeType type;
     void *value;
 
-    explicit AudioNode(const AudioNodeType t) : type(t) {
+    explicit AudioNode(const AudioUiNodeType t) : type(t) {
 //        value = new float[buffer_size]();
     }
 
-    AudioNode(const AudioNodeType t, void* v) : type(t), value(v) {}
+    AudioNode(const AudioUiNodeType t, void* v) : type(t), value(v) {}
 };

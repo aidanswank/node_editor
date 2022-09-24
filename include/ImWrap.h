@@ -20,5 +20,4 @@ public:
     SDL_Window* Window;
     ImFont* font;
     ImGuiIO* io;
-    bool* running;
 };

@@ -24,7 +24,7 @@ void CustomImGui::Attach(bool *p_main_running)
     
     example::NodeEditorInitialize();
 
-    audioInterface->openDevice(1,0);
+//    audioInterface->openDevice(1,0);
 };
 
 void CustomImGui::DropDownMenu(const char *name, std::vector<std::string> &itemNames, const char *&current_item, int isCapture)

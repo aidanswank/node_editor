@@ -33,7 +33,8 @@ static float current_time_seconds = 0.f;
 static bool  emulate_three_button_mouse = false;
 
 float* res = new float[buffer_size]();
-float* audio_input = new float[buffer_size]();
+float* audio_input = new float[buffer_size*2]();
+int audio_input_chan_count = 0;
 
 float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
 {
@@ -63,7 +64,12 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
 //                float whitenoise = rand() % 100;
 //                whitenoise = whitenoise / 100;
 
-                output[i]  = audio_input[i];
+                if(audio_input_chan_count==2)
+                {
+                    output[i]  = audio_input[i * 2];
+                } else  if(audio_input_chan_count==1) {
+                    output[i]  = audio_input[i];
+                }
 
             }
             value_stack.push(output);
@@ -1002,9 +1008,10 @@ void NodeEditorInitialize()
 
 float* audio_output = new float[buffer_size]();
 
-void NodeEditorAudioLoadInput(float* input_stream)
+void NodeEditorAudioLoadInput(float* input_stream, int chan_count)
 {
     audio_input = input_stream;
+    audio_input_chan_count = chan_count;
 }
 
 float* NodeEditorAudioCallback() 

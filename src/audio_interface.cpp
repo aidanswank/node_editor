@@ -11,7 +11,11 @@ audio_interface::audio_interface()
 
 audio_interface::~audio_interface()
 {
-	printf("audio interface shutting down\n");
+//	printf("audio interface shutting down\n");
+    PaError err;
+    err = Pa_Terminate();
+    if( err != paNoError ) { print("error closing"); }
+
 }
 
 void audio_interface::set_param(bool is_capture, int dev_id)
@@ -91,4 +95,9 @@ void audio_interface::turn_on(PaStreamCallback* callback)
     } else {
         print("success?");
     };
+}
+
+void audio_interface::close_stream()
+{
+    Pa_CloseStream(stream);
 }

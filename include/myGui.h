@@ -29,6 +29,7 @@ struct CustomImGui : public ImWrap
 
     CustomImGui();
     void DropDownMenu(const char *name, std::vector<std::string> &itemNames, const char *&current_item, int isCapture);
+    void audio_settings_combo_box(const char *combo_box_name, std::vector<std::string> &item_names, int* select_choice, bool is_capture);
     void AudioSettings(bool *p_audioSettingsOpen);
     void save();
     void load();

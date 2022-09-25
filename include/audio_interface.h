@@ -12,11 +12,13 @@ public:
     virtual void scan_devices();
     void set_param(bool is_capture, int dev_id);
     void turn_on(PaStreamCallback* callback);
+    void close_stream();
 
-private:
+//private:
     int sample_rate;
     int buffer_size;
-    PaStream *stream;
     PaStreamParameters input_parameters;
     PaStreamParameters output_parameters;
+    PaStream *stream;
+
 };

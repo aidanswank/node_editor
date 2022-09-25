@@ -289,20 +289,20 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
     return res;
 }
 
-void comboBox(const char *name, std::vector<std::string> &itemNames, int*& selectChoice)
+void combo_box(const char *combo_box_name, std::vector<std::string> &item_names, int* select_choice)
 {
-    const char * currentName = itemNames[*selectChoice].c_str();
+    const char * current_name = item_names[*select_choice].c_str();
 
-    if (ImGui::BeginCombo(name, currentName)) // The second parameter is the label previewed before opening the combo.
+    if (ImGui::BeginCombo(combo_box_name, current_name)) // The second parameter is the label previewed before opening the combo.
     {
-        for (int n = 0; n < itemNames.size(); n++)
+        for (int n = 0; n < item_names.size(); n++)
         {
-            bool is_selected = (currentName == itemNames[n].c_str()); // You can store your selection however you want, outside or inside your objects
-            if (ImGui::Selectable(itemNames[n].c_str(), is_selected))
+            bool is_selected = (current_name == item_names[n].c_str()); // You can store your selection however you want, outside or inside your objects
+            if (ImGui::Selectable(item_names[n].c_str(), is_selected))
             {
-                currentName = itemNames[n].c_str();
-                print(currentName,"selected",n);
-                *selectChoice = n;
+                current_name = item_names[n].c_str();
+                print(current_name,"selected",n);
+                *select_choice = n;
                 // audioInterface->turnDeviceOn( audioInterface->openDevice(n,0) );
             }
             // if (is_selected)
@@ -707,7 +707,7 @@ public:
 
                 float*  freq_num    = (float*)  audio_graph_.node(node.ui.sine.freq).value;
                 int*    sc_type_num = (int*)    audio_graph_.node(node.ui.sine.osc_type).value;
-                comboBox("osc type", names, sc_type_num);
+                combo_box("osc type", names, sc_type_num);
                 // print("yooo", *sc_type_num);
 
                 ImGui::DragFloat("freq", &*freq_num, 2.0f, 1.f, 1000.0f);

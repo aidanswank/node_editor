@@ -38,6 +38,9 @@ void my_interface::open_stream()
 
 void my_interface::scan_devices()
 {
+    input_devices.clear();
+    output_devices.clear();
+
     int numDevices;
     numDevices = Pa_GetDeviceCount();
     if( numDevices < 0 )
@@ -49,25 +52,27 @@ void my_interface::scan_devices()
     for( int i=0; i<numDevices; i++ )
     {
         deviceInfo = Pa_GetDeviceInfo( i );
-        
-        dev_nfo_wrap nfo { deviceInfo->name, i };
+        print(i,"~",deviceInfo->name,"\ndefault sample rate:", deviceInfo->defaultSampleRate,"max inputs:",deviceInfo->maxInputChannels,"max outputs:",deviceInfo->maxOutputChannels,"\n");
+
+//        dev_nfo_wrap nfo { deviceInfo->name, i };
+        device_id_map.insert( {deviceInfo->name, i} );
 
         if(deviceInfo->maxInputChannels>0)
         {
-            input_devices.push_back(nfo);
+            input_devices.push_back(deviceInfo->name);
         }
         if(deviceInfo->maxOutputChannels>0)
         {
-            output_devices.push_back(nfo);
+            output_devices.push_back(deviceInfo->name);
         }
     }
 
-    for(int i = 0; i < input_devices.size(); i++)
-    {
-        print("IN  ~ id",input_devices[i].id,"name",input_devices[i].name);
-    }
-    for(int i = 0; i < output_devices.size(); i++)
-    {
-        print("OUT ~ id",output_devices[i].id,"name",output_devices[i].name);
-    }
+//    for(int i = 0; i < input_devices.size(); i++)
+//    {
+//        print("IN  ~ id",input_devices[i].id,"name",input_devices[i].name);
+//    }
+//    for(int i = 0; i < output_devices.size(); i++)
+//    {
+//        print("OUT ~ id",output_devices[i].id,"name",output_devices[i].name);
+//    }
 }

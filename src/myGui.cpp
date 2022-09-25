@@ -110,7 +110,7 @@ void CustomImGui::AudioSettings(bool *p_audioSettingsOpen)
     static int output_selection;
     audio_settings_combo_box("output devices", audio_interface->output_devices, &output_selection, false);
     static int input_selection;
-    audio_settings_combo_box("input devices", audio_interface->input_devices, &input_selection, false);
+    audio_settings_combo_box("input devices", audio_interface->input_devices, &input_selection, true);
 //    auto thing = audio_interface->device_id_map.find(audio_interface->input_devices[input_selection]);
 //    print(thing->first,thing->second);
 //    DropDownMenu("output devices", audio_interface->output_devices, current_outputDeviceName, 0);

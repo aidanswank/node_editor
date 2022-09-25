@@ -20,6 +20,8 @@ static int custom_callback( const void *inputBuffer, void *outputBuffer,
     // (void) inputBuffer; /* Prevent unused variable warning. */
     float* audio_in = (float*)inputBuffer;
     
+    example::NodeEditorAudioLoadInput(audio_in);
+
     node_output2 = example::NodeEditorAudioCallback();
 
     for( i=0; i<framesPerBuffer; i++ )

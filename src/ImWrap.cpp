@@ -22,7 +22,7 @@ void ImWrap::Init(SDL_Window* p_Window, SDL_GLContext p_Context)
     ImGui_ImplSDL2_InitForOpenGL(Window, p_Context);
     ImGui_ImplOpenGL3_Init("#version 330 core"); // glsl version
 
-    font = io->Fonts->AddFontFromFileTTF("/Users/aidan/dev/cpp/node_editor/res/fonts/unifont-14.0.01.ttf", 16.0f);
+//    font = io->Fonts->AddFontFromFileTTF("/Users/aidan/dev/cpp/node_editor/res/fonts/unifont-14.0.01.ttf", 16.0f);
 
     io->IniFilename = "/Users/aidan/imgui.ini";
     // std::cout << &Window << std::endl;

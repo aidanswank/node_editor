@@ -8,7 +8,24 @@ enum class NodeType
     waveviewer,
     vst,
     interface_in,
+    test_external
 };
+
+int buffer_size = 256;
+
+struct AudioNode
+{
+    NodeType type;
+    void *value;
+
+    explicit AudioNode(const NodeType t) : type(t) {
+//        value = new float[buffer_size]();
+    }
+
+    AudioNode(const NodeType t, void* v) : type(t), value(v) {}
+};
+
+#include "TestModule.h"
 
 struct UiNode
 {
@@ -57,20 +74,7 @@ struct UiNode
         {
             int input_buf;
         } interface_in;
-
+        
+//        TestModule testmodule; ??? node even needed lol?
     } ui;
-};
-
-int buffer_size = 256;
-
-struct AudioNode
-{
-    NodeType type;
-    void *value;
-
-    explicit AudioNode(const NodeType t) : type(t) {
-//        value = new float[buffer_size]();
-    }
-
-    AudioNode(const NodeType t, void* v) : type(t), value(v) {}
 };

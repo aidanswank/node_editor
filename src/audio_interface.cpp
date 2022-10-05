@@ -99,5 +99,10 @@ void audio_interface::turn_on(PaStreamCallback* callback)
 
 void audio_interface::close_stream()
 {
-    Pa_CloseStream(stream);
+    PaError err;
+    err = Pa_CloseStream(stream);
+    if (err != paNoError) {
+            std::cerr << "Failed to close PortAudio stream" << std::endl;
+            return 1;
+    }
 }

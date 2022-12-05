@@ -1,3 +1,5 @@
+#pragma once
+
 enum class NodeType
 {
     value,
@@ -11,7 +13,7 @@ enum class NodeType
     test_external
 };
 
-int buffer_size = 256;
+//int buffer_size = 256;
 
 struct AudioNode
 {
@@ -25,7 +27,15 @@ struct AudioNode
     AudioNode(const NodeType t, void* v) : type(t), value(v) {}
 };
 
-#include "TestModule.h"
+// // ids of nodes that point to data
+// struct test_ext
+// {
+//     int osc; // should rename osc_ptr or id_osc_ptr??
+//     int osc_type;
+//     int osc_output;
+//     int freq;
+// };
+
 
 struct UiNode
 {
@@ -41,7 +51,7 @@ struct UiNode
         {
             int input;
             int gain;
-        } output; 
+        } output;
         
         struct
         {
@@ -49,7 +59,7 @@ struct UiNode
             int osc_type;
             int osc_output;
             int freq;
-        } sine; 
+        } sine;
 
         struct
         {
@@ -62,7 +72,7 @@ struct UiNode
         {
             int input;
             int view_buf;
-        } waveviewer; 
+        } waveviewer;
 
         struct
         {
@@ -75,6 +85,17 @@ struct UiNode
             int input_buf;
         } interface_in;
         
-//        TestModule testmodule; ??? node even needed lol?
+        struct
+        {
+            int osc; // should rename osc_ptr or id_osc_ptr??
+            int osc_type;
+            int osc_output;
+            int freq;
+        } test_external;
+        
+//        test_ext myext;
+
     } ui;
 };
+
+//#include "test_module.h"

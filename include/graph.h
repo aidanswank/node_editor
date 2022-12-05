@@ -258,7 +258,7 @@ int Graph<NodeType>::insert_node(const NodeType& node)
     nodes_.insert(id, node);
     edges_from_node_.insert(id, 0);
     node_neighbors_.insert(id, std::vector<int>());
-    std::cout << "current id " << id << "inserted" << std::endl;
+    std::cout << "current id " << id << " inserted" << std::endl;
     return id;
 }
 

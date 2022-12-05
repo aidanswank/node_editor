@@ -15,9 +15,11 @@
 #include <vector>
 #include "vprint.h"
 
+int buffer_size = 256;
+
 #include "NodeDefs.h"
 
-//#include "TestModule.h"
+#include "test_module.h"
 
 namespace example
 {
@@ -56,7 +58,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
         {
         case NodeType::test_external:
         {
-            process_module(value_stack);
+            test_module::process_module(value_stack);
         }
         break;
         case NodeType::interface_in:
@@ -86,7 +88,7 @@ float* audio_evaluate(const Graph<AudioNode>& graph, const int root_node)
         break;
         case NodeType::vst:
         {
-            float* output;
+//            float* output;
 
             float* input_buf = (float*)value_stack.top();
 //            for(int i = 0; i < 10; i++)
@@ -434,7 +436,7 @@ public:
                 // TEST EXTERNAL
                 if (ImGui::MenuItem("TEST_EXTERNAL"))
                 {
-                    init_module(click_pos, audio_graph_, ui_nodes);
+                    test_module::init_module(click_pos, audio_graph_, ui_nodes);
                 }
 //
                 if(ImGui::MenuItem("AudioInterfaceIn"))
@@ -507,33 +509,33 @@ public:
 
                     ui_nodes.push_back(ui_node);
 
-                    // ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
+                    ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
                 }
                 
                 // AUDIO SINE
                 if (ImGui::MenuItem("AudioOsc"))
                 {
-                    print("something happens");
+//                    print("something happens");
                     // float* arr = new float[buffer_size]();
                     // const AudioNode value(AudioNodeType::value, arr);
                     // const AudioNode op(AudioNodeType::sine);
 
                     float *osc_output = new float[buffer_size]();
                     
-                    Oscillator *osc = new Oscillator();
-                    osc->setMode(Oscillator::OSCILLATOR_MODE_SAW);
-                    osc->setSampleRate(44100);
+                    Oscillator *osc_ptr = new Oscillator();
+                    osc_ptr->setMode(Oscillator::OSCILLATOR_MODE_SAW);
+                    osc_ptr->setSampleRate(44100);
 
                     float *freq_num = new float(440.0f);
                     // *freq_num = 440.0f;
-                    const AudioNode osc_node(NodeType::value, (void*)osc);
+                    const AudioNode osc_node(NodeType::value, (void*)osc_ptr);
                     const AudioNode freq_node(NodeType::value, (void*)freq_num);
 
-                    const AudioNode osc_type_node(NodeType::value, (void*)new int(0)); //type 0 sine
+                    const AudioNode osc_type_node(NodeType::value, (void*)new int(0)); //0 = sine mode
                     const AudioNode osc_out_node(NodeType::value, (void*)osc_output);
 
                     UiNode audio_ui_node;
-                    audio_ui_node.type = NodeType::sine;
+                    audio_ui_node.type               = NodeType::sine;
                     audio_ui_node.id                 = audio_graph_.insert_node( AudioNode(NodeType::sine) );
                     audio_ui_node.ui.sine.osc        = audio_graph_.insert_node( osc_node ); // id of node
                     audio_ui_node.ui.sine.freq       = audio_graph_.insert_node( freq_node ); // id of node
@@ -651,10 +653,9 @@ public:
         {
             switch (node.type)
             {
-                    
             case NodeType::test_external:
             {
-                show_module(node, audio_graph_);
+                test_module::show_module(node, audio_graph_);
             }
             break;
             case NodeType::interface_in:

@@ -10,21 +10,22 @@ enum class NodeType
     waveviewer,
     vst,
     interface_in,
-    test_external
+    test_external,
+    midi_in,
 };
 
 //int buffer_size = 256;
 
-struct AudioNode
+struct Node
 {
     NodeType type;
     void *value;
 
-    explicit AudioNode(const NodeType t) : type(t) {
+    explicit Node(const NodeType t) : type(t) {
 //        value = new float[buffer_size]();
     }
 
-    AudioNode(const NodeType t, void* v) : type(t), value(v) {}
+    Node(const NodeType t, void* v) : type(t), value(v) {}
 };
 
 // // ids of nodes that point to data
@@ -91,7 +92,14 @@ struct UiNode
             int osc_type;
             int osc_output;
             int freq;
+            int midiin_data;
         } test_external;
+        
+        struct
+        {
+            int midiin_ptr;
+            int userdata_ptr;
+        } midi_in;
         
 //        test_ext myext;
 

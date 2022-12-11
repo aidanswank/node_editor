@@ -18,14 +18,16 @@
 //     int freq;
 // };
 
+double midi2Freq(int n);
+
 class test_module
 {
 public:
 //    template <typename T>
-    static void init_module(ImVec2 click_pos, example::Graph<AudioNode> &audio_graph_, std::vector<UiNode> &ui_nodes_);
+    static void init_module(ImVec2 click_pos, example::Graph<Node> &audio_graph_, std::vector<UiNode> &ui_nodes_);
     static void process_module(std::stack<void *> &value_stack);
 //    template <typename T>
-    static void show_module(const UiNode &node, example::Graph<AudioNode> &audio_graph_);
+    static void show_module(const UiNode &node, example::Graph<Node> &audio_graph_);
     
     //more
     static void combo_box(const char *combo_box_name, std::vector<std::string> &item_names, int *select_choice)

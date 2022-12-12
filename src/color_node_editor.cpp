@@ -36,269 +36,7 @@ T clamp(T x, T a, T b)
 static float current_time_seconds = 0.f;
 static bool  emulate_three_button_mouse = false;
 
-float* res = new float[buffer_size]();
-float* audio_input = new float[buffer_size*2]();
-int audio_input_chan_count = 0;
-
-float* audio_evaluate(const Graph<Node>& graph, const int root_node)
-{
-//    float* res;
-    std::stack<int> postorder;
-    
-    dfs_traverse(graph, root_node, [&postorder](const int node_id) -> void { postorder.push(node_id); });
-    
-    std::stack<void*> value_stack;
-    
-    while (!postorder.empty())
-    {
-        const int id = postorder.top();
-        postorder.pop();
-        const Node node = graph.node(id);
-
-        switch (node.type)
-        {
-        case NodeType::test_external:
-        {
-            test_module::process_module(value_stack);
-        }
-        break;
-        case NodeType::interface_in:
-        {
-            // print("white!!");
-
-            // memory leak but i dont want to add a node right now lol
-            float* output = new float[buffer_size]();
-            
-            for(int i = 0; i < buffer_size; i++)
-            {
-
-//                float whitenoise = rand() % 100;
-//                whitenoise = whitenoise / 100;
-
-                if(audio_input_chan_count==2)
-                {
-                    output[i]  = audio_input[i * 2];
-                } else  if(audio_input_chan_count==1) {
-                    output[i]  = audio_input[i];
-                }
-
-            }
-            value_stack.push(output);
-
-        }
-        break;
-        case NodeType::vst:
-        {
-//            float* output;
-
-            float* input_buf = (float*)value_stack.top();
-//            for(int i = 0; i < 10; i++)
-//            {
-//                print("inbuf",input_buf[i]);
-//            }
-            value_stack.pop();
-
-            EasyVst *vst_ptr = (EasyVst*)value_stack.top();
-            value_stack.pop();
-
-            float *left_input = vst_ptr->channelBuffer32(Steinberg::Vst::kInput, 0);
-
-            if (!vst_ptr->process(buffer_size))
-            {
-                std::cerr << "VST process() failed" << std::endl;
-                // return 1;
-            }
-
-            //input
-            for (unsigned long i = 0; i < buffer_size; ++i)
-            {
-                left_input[i] = input_buf[i];
-//                 right_input[i * 2 + 1] = f * 0.1;
-            }
-
-            //output
-            float *left = vst_ptr->channelBuffer32(Steinberg::Vst::kOutput, 0);
-//             float *right = userData->vst.channelBuffer32(Steinberg::Vst::kOutput, 0);
-//            for (unsigned long i = 0; i < buffer_size; ++i)
-//            {
-//                output[i] = left[i];
-////                 outputBuffer[i * 2 + 1] = right[i];
-//            }
-
-            value_stack.push(left);
-        }
-        break;
-        case NodeType::sine:
-        {
-            // print("sine");
-
-            float* output = (float*)value_stack.top();
-            value_stack.pop();
-            
-            int* osc_type_ptr = (int*)value_stack.top();
-            int osc_type_num = *osc_type_ptr;
-            value_stack.pop();
-            // print("osc type",osc_type_num);
-
-            float* slider_ptr = (float*)value_stack.top();
-            float freq = *slider_ptr;
-            value_stack.pop();
-            // print("yooo",freq);
-
-            Oscillator *osc_ptr = (Oscillator*)value_stack.top();
-            // print("yooo",gain_arr[0]);
-            value_stack.pop();
-
-
-//            float* output = new float[buffer_size]();
-            
-            osc_ptr->setFrequency(freq);
-            osc_ptr->setMode((Oscillator::OscillatorMode)osc_type_num);
-            
-            for(int i = 0; i < buffer_size; i++)
-            {
-                double osc_output =  osc_ptr->nextSample();
-
-                // float whitenoise = rand() % 100;
-                // whitenoise = whitenoise / 100;
-                // output[i]  = whitenoise * 0.06;
-
-                output[i] = osc_output;
-            }
-            value_stack.push(output);
-        }
-        break;
-        case NodeType::waveviewer:
-        {
-            float* view_buf = (float*)value_stack.top();
-            value_stack.pop();
-
-            float* input_array = (float*)value_stack.top();
-            memcpy(view_buf, input_array, sizeof(float)*256);
-            value_stack.pop();
-
-            value_stack.push(input_array);
-
-        }
-        break;
-        case NodeType::white:
-        {
-            // print("white!!");
-
-            // memory leak but i dont want to add a node right now lol
-            float* output = new float[buffer_size]();
-            for(int i = 0; i < buffer_size; i++)
-            {
-
-                float whitenoise = rand() % 100;
-                whitenoise = whitenoise / 100;
-
-                output[i]  = whitenoise;
-
-            }
-            value_stack.push(output);
-        }
-        break;
-        case NodeType::xfader:
-        {
-            float* output = new float[buffer_size]();
-
-            float *slider_ptr = (float*)value_stack.top();
-            value_stack.pop();
-
-            float* input_a = (float*)value_stack.top();
-            value_stack.pop();
-
-            float* input_b = (float*)value_stack.top();
-            value_stack.pop();
-
-//            print("size",value_stack.size(),"a",*input_a,"b",*input_b,"slide",*slider_ptr);
-
-            float amount = *slider_ptr;
-
-            for(int i = 0; i < buffer_size; i++)
-            {
-
-                output[i]  = (input_a[i] * amount) + (input_b[i] * (1.0-amount));
-            }
-
-            value_stack.push(output);
-        }
-        break;
-        case NodeType::value:
-        {
-            // print("value");
-            // If the edge does not have an edge connecting to another node, then just use the value
-            // at this node. It means the node's input pin has not been connected to anything and
-            // the value comes from the node's UI.
-            if (graph.num_edges_from_node(id) == 0ull)
-            {
-                value_stack.push(node.value);
-                // print("node val",node.value);
-            }
-        }
-        break;
-        case NodeType::output:
-        {
-            float *gain_arr = (float*)value_stack.top();
-            // print("yooo",gain_arr[0]);
-            value_stack.pop();
-            
-            res = (float*)value_stack.top();
-            value_stack.pop();
-                            
-//              print("REMAINING NODES!", value_stack.size());
-            std::vector<float*> to_be_mixed;
-            for(int i = 0; i < value_stack.size(); i++)
-            {
-                float* audio = (float*)value_stack.top();
-                value_stack.pop();
-                to_be_mixed.push_back(audio);
-            }
-
-            // adjust gain by knob
-            for(int i = 0; i < buffer_size; i++)
-            {
-                // MIXED UP REMAINING NODES
-                for(int j = 0; j < to_be_mixed.size(); j++)
-                {
-                    res[i] += to_be_mixed[j][i];
-                }
-            }
-            
-            for(int i = 0; i < buffer_size; i++)
-            {
-                res[i] *= (*gain_arr); // accessing [0]
-            }
-                
-        }
-
-        break;
-        default:
-            break;
-        }
-    }
-
-    // The final output node isn't evaluated in the loop -- instead we just pop
-    // the three values which should be in the stack.
-    // assert(value_stack.size() == 1ull);
-
-    // print("stack sz", value_stack.size());
-
-    // float* res = new float[buffer_size]();
-    // if(value_stack.size() == 1ull)
-    // {
-    //     // print("yo");
-    //     res = value_stack.top();
-    //     // for(int i = 0; i < buffer_size; i++)
-    //     // {
-    //     //     print(res[i]);
-    //     // }
-    //     value_stack.pop();
-    // }
-
-    return res;
-}
+#include "audio_evaluate.h"
 
 void combo_box(const char *combo_box_name, std::vector<std::string> &item_names, int* select_choice)
 {
@@ -422,175 +160,182 @@ public:
             {
                 ImGui::OpenPopup("add node");
             }
-            
 
             if (ImGui::BeginPopup("add node"))
             {
                 const ImVec2 click_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
 
                 
-                if (ImGui::MenuItem("RtMidi Input"))
+                for(int i = 0; i < node_types.size(); i++)
                 {
-                    midiin_module_init(click_pos, graph, ui_nodes);
+                    if (ImGui::MenuItem(node_types[i].c_str()))
+                    {
+//                        midiin_module_init(click_pos, graph, ui_nodes);
+                    }
                 }
                 
+//                if (ImGui::MenuItem("RtMidi Input"))
+//                {
+//                    midiin_module_init(click_pos, graph, ui_nodes);
+//                }
+//
                 // TEST EXTERNAL
                 if (ImGui::MenuItem("TEST_EXTERNAL"))
                 {
-                    test_module::init_module(click_pos, graph, ui_nodes);
+                    test_module::init_module(click_pos, graph, ui_nodes2);
                 }
+////
+//                if(ImGui::MenuItem("AudioInterfaceIn"))
+//                {
+//                    UiNode audio_ui_node;
+//                    audio_ui_node.type = NodeType::interface_in;
+//                    audio_ui_node.id = graph.insert_node( Node(NodeType::interface_in) );
+//                    // audio_ui_node.ui.sine.osc = audio_graph_.insert_node( osc_node ); // id of node
 //
-                if(ImGui::MenuItem("AudioInterfaceIn"))
-                {
-                    UiNode audio_ui_node;
-                    audio_ui_node.type = NodeType::interface_in;
-                    audio_ui_node.id = graph.insert_node( Node(NodeType::interface_in) );
-                    // audio_ui_node.ui.sine.osc = audio_graph_.insert_node( osc_node ); // id of node
-
-                    // audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc);
-
-                    ui_nodes.push_back(audio_ui_node);
-
-                    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
-                }
-                
-                if(ImGui::MenuItem("AudioVST3Plug"))
-                {
-                    EasyVst *vst = new EasyVst();
-
-                    /////////////// vst setup TODO CLEAN !!!!
-
-                    if (!vst->init("/Library/Audio/Plug-Ins/VST3/Portal.vst3", 44100, 256, Steinberg::Vst::kSample32, true))
-                    {
-                        std::cerr << "Failed to initialize VST" << std::endl;
-                        // return 1;
-                    }
-
-                    int numEventInBuses = vst->numBuses(Steinberg::Vst::kAudio, Steinberg::Vst::kInput);
-                    int numAudioOutBuses = vst->numBuses(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput);
-                    print("num input buses", numEventInBuses, "out buses", numAudioOutBuses);
-                    if (numEventInBuses < 1 || numAudioOutBuses < 1)
-                    {
-                        std::cerr << "Incorrect bus configuration" << std::endl;
-                        // return 1;
-                    }
-
-                    const Steinberg::Vst::BusInfo *outBusInfo = vst->busInfo(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput, 0);
-                    if (outBusInfo->channelCount != 2)
-                    {
-                        std::cerr << "Invalid output channel configuration" << std::endl;
-                        // return 1;
-                    }
-
-                    vst->setBusActive(Steinberg::Vst::kAudio, Steinberg::Vst::kInput, 0, true);
-                    vst->setBusActive(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput, 0, true);
-                    vst->setProcessing(true);
-
-                    if (!vst->createView())
-                    {
-                        std::cerr << "Failed to create VST view" << std::endl;
-                        // return 1;
-                    }
-
-                    ////////////// end setup
-
-                    float* mono_buf = new float[256]();
-
-                    const Node vst_node(NodeType::value, (void*)vst);
-                    const Node input_buf_node(NodeType::value, (void*)mono_buf);
-
-                    UiNode ui_node;
-                    ui_node.type                = NodeType::vst;
-                    ui_node.id                  = graph.insert_node( Node(NodeType::vst) );
-                    ui_node.ui.vst.vst_obj      = graph.insert_node( vst_node ); // id of node
-                    ui_node.ui.vst.input_buf    = graph.insert_node( input_buf_node ); // id of node
-
-                    graph.insert_edge(ui_node.id, ui_node.ui.vst.vst_obj);
-                    graph.insert_edge(ui_node.id, ui_node.ui.vst.input_buf);
-
-                    ui_nodes.push_back(ui_node);
-
-                    ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
-                }
-                
-                // AUDIO SINE
-                if (ImGui::MenuItem("AudioOsc"))
-                {
-//                    print("something happens");
-                    // float* arr = new float[buffer_size]();
-                    // const AudioNode value(AudioNodeType::value, arr);
-                    // const AudioNode op(AudioNodeType::sine);
-
-                    float *osc_output = new float[buffer_size]();
-                    
-                    Oscillator *osc_ptr = new Oscillator();
-                    osc_ptr->setMode(Oscillator::OSCILLATOR_MODE_SAW);
-                    osc_ptr->setSampleRate(44100);
-
-                    float *freq_num = new float(440.0f);
-                    // *freq_num = 440.0f;
-                    const Node osc_node(NodeType::value, (void*)osc_ptr);
-                    const Node freq_node(NodeType::value, (void*)freq_num);
-
-                    const Node osc_type_node(NodeType::value, (void*)new int(0)); //0 = sine mode
-                    const Node osc_out_node(NodeType::value, (void*)osc_output);
-
-                    UiNode audio_ui_node;
-                    audio_ui_node.type               = NodeType::sine;
-                    audio_ui_node.id                 = graph.insert_node( Node(NodeType::sine) );
-                    audio_ui_node.ui.sine.osc        = graph.insert_node( osc_node ); // id of node
-                    audio_ui_node.ui.sine.freq       = graph.insert_node( freq_node ); // id of node
-                    audio_ui_node.ui.sine.osc_type   = graph.insert_node( osc_type_node ); // id of node
-                    audio_ui_node.ui.sine.osc_output = graph.insert_node( osc_out_node ); // id of node
-
-                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc);
-                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.freq);
-                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc_type);
-                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc_output);
-
-                    ui_nodes.push_back(audio_ui_node);
-
-                    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
-                }
-
-                if (ImGui::MenuItem("AudioWhiteNoise"))
-                {
-
-                    UiNode audio_ui_node;
-                    audio_ui_node.type = NodeType::white;
-                    audio_ui_node.id = graph.insert_node( Node(NodeType::white) );
-                    // audio_ui_node.ui.sine.osc = audio_graph_.insert_node( osc_node ); // id of node
-
-                    // audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc);
-
-                    ui_nodes.push_back(audio_ui_node);
-
-                    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
-                }
-
-                if (ImGui::MenuItem("AudioXfader"))
-                {
-                    float* arr = new float[buffer_size]();
-                    float* amount_ptr = new float(0.5);
-                    // print(*amount_ptr);
-                    const Node value(NodeType::value, arr);
-                    const Node amount(NodeType::value, amount_ptr);
-                    const Node op(NodeType::xfader);
-
-                    UiNode ui_node;
-                    ui_node.type = NodeType::xfader;
-                    ui_node.ui.xfader.input_a = graph.insert_node(value);
-                    ui_node.ui.xfader.input_b = graph.insert_node(value);
-                    ui_node.ui.xfader.amount = graph.insert_node(amount);
-                    ui_node.id = graph.insert_node(op);
-
-                    graph.insert_edge(ui_node.id, ui_node.ui.xfader.input_a);
-                    graph.insert_edge(ui_node.id, ui_node.ui.xfader.input_b);
-                    graph.insert_edge(ui_node.id, ui_node.ui.xfader.amount);
-
-                    ui_nodes.push_back(ui_node);
-                    ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
-                }
+//                    // audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc);
+//
+//                    ui_nodes.push_back(audio_ui_node);
+//
+//                    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
+//                }
+//
+//                if(ImGui::MenuItem("AudioVST3Plug"))
+//                {
+//                    EasyVst *vst = new EasyVst();
+//
+//                    /////////////// vst setup TODO CLEAN !!!!
+//
+//                    if (!vst->init("/Library/Audio/Plug-Ins/VST3/Portal.vst3", 44100, 256, Steinberg::Vst::kSample32, true))
+//                    {
+//                        std::cerr << "Failed to initialize VST" << std::endl;
+//                        // return 1;
+//                    }
+//
+//                    int numEventInBuses = vst->numBuses(Steinberg::Vst::kAudio, Steinberg::Vst::kInput);
+//                    int numAudioOutBuses = vst->numBuses(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput);
+//                    print("num input buses", numEventInBuses, "out buses", numAudioOutBuses);
+//                    if (numEventInBuses < 1 || numAudioOutBuses < 1)
+//                    {
+//                        std::cerr << "Incorrect bus configuration" << std::endl;
+//                        // return 1;
+//                    }
+//
+//                    const Steinberg::Vst::BusInfo *outBusInfo = vst->busInfo(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput, 0);
+//                    if (outBusInfo->channelCount != 2)
+//                    {
+//                        std::cerr << "Invalid output channel configuration" << std::endl;
+//                        // return 1;
+//                    }
+//
+//                    vst->setBusActive(Steinberg::Vst::kAudio, Steinberg::Vst::kInput, 0, true);
+//                    vst->setBusActive(Steinberg::Vst::kAudio, Steinberg::Vst::kOutput, 0, true);
+//                    vst->setProcessing(true);
+//
+//                    if (!vst->createView())
+//                    {
+//                        std::cerr << "Failed to create VST view" << std::endl;
+//                        // return 1;
+//                    }
+//
+//                    ////////////// end setup
+//
+//                    float* mono_buf = new float[256]();
+//
+//                    const Node vst_node(NodeType::value, (void*)vst);
+//                    const Node input_buf_node(NodeType::value, (void*)mono_buf);
+//
+//                    UiNode ui_node;
+//                    ui_node.type                = NodeType::vst;
+//                    ui_node.id                  = graph.insert_node( Node(NodeType::vst) );
+//                    ui_node.ui.vst.vst_obj      = graph.insert_node( vst_node ); // id of node
+//                    ui_node.ui.vst.input_buf    = graph.insert_node( input_buf_node ); // id of node
+//
+//                    graph.insert_edge(ui_node.id, ui_node.ui.vst.vst_obj);
+//                    graph.insert_edge(ui_node.id, ui_node.ui.vst.input_buf);
+//
+//                    ui_nodes.push_back(ui_node);
+//
+//                    ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
+//                }
+//
+//                // AUDIO SINE
+//                if (ImGui::MenuItem("AudioOsc"))
+//                {
+////                    print("something happens");
+//                    // float* arr = new float[buffer_size]();
+//                    // const AudioNode value(AudioNodeType::value, arr);
+//                    // const AudioNode op(AudioNodeType::sine);
+//
+//                    float *osc_output = new float[buffer_size]();
+//
+//                    Oscillator *osc_ptr = new Oscillator();
+//                    osc_ptr->setMode(Oscillator::OSCILLATOR_MODE_SAW);
+//                    osc_ptr->setSampleRate(44100);
+//
+//                    float *freq_num = new float(440.0f);
+//                    // *freq_num = 440.0f;
+//                    const Node osc_node(NodeType::value, (void*)osc_ptr);
+//                    const Node freq_node(NodeType::value, (void*)freq_num);
+//
+//                    const Node osc_type_node(NodeType::value, (void*)new int(0)); //0 = sine mode
+//                    const Node osc_out_node(NodeType::value, (void*)osc_output);
+//
+//                    UiNode audio_ui_node;
+//                    audio_ui_node.type               = NodeType::sine;
+//                    audio_ui_node.id                 = graph.insert_node( Node(NodeType::sine) );
+//                    audio_ui_node.ui.sine.osc        = graph.insert_node( osc_node ); // id of node
+//                    audio_ui_node.ui.sine.freq       = graph.insert_node( freq_node ); // id of node
+//                    audio_ui_node.ui.sine.osc_type   = graph.insert_node( osc_type_node ); // id of node
+//                    audio_ui_node.ui.sine.osc_output = graph.insert_node( osc_out_node ); // id of node
+//
+//                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc);
+//                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.freq);
+//                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc_type);
+//                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc_output);
+//
+//                    ui_nodes.push_back(audio_ui_node);
+//
+//                    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
+//                }
+//
+//                if (ImGui::MenuItem("AudioWhiteNoise"))
+//                {
+//
+//                    UiNode audio_ui_node;
+//                    audio_ui_node.type = NodeType::white;
+//                    audio_ui_node.id = graph.insert_node( Node(NodeType::white) );
+//                    // audio_ui_node.ui.sine.osc = audio_graph_.insert_node( osc_node ); // id of node
+//
+//                    // audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.sine.osc);
+//
+//                    ui_nodes.push_back(audio_ui_node);
+//
+//                    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
+//                }
+//
+//                if (ImGui::MenuItem("AudioXfader"))
+//                {
+//                    float* arr = new float[buffer_size]();
+//                    float* amount_ptr = new float(0.5);
+//                    // print(*amount_ptr);
+//                    const Node value(NodeType::value, arr);
+//                    const Node amount(NodeType::value, amount_ptr);
+//                    const Node op(NodeType::xfader);
+//
+//                    UiNode ui_node;
+//                    ui_node.type = NodeType::xfader;
+//                    ui_node.ui.xfader.input_a = graph.insert_node(value);
+//                    ui_node.ui.xfader.input_b = graph.insert_node(value);
+//                    ui_node.ui.xfader.amount = graph.insert_node(amount);
+//                    ui_node.id = graph.insert_node(op);
+//
+//                    graph.insert_edge(ui_node.id, ui_node.ui.xfader.input_a);
+//                    graph.insert_edge(ui_node.id, ui_node.ui.xfader.input_b);
+//                    graph.insert_edge(ui_node.id, ui_node.ui.xfader.amount);
+//
+//                    ui_nodes.push_back(ui_node);
+//                    ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
+//                }
 
                 if (ImGui::MenuItem("AudioOutput") && audio_root_node_id_ == -1)
                 {
@@ -601,302 +346,358 @@ public:
                     const Node gain(NodeType::value, gain_ptr);
                     const Node out(NodeType::output);
 
-                    UiNode audio_ui_node;
+                    uinode2 audio_ui_node;
                     audio_ui_node.type = NodeType::output;
-                    audio_ui_node.ui.output.input = graph.insert_node(value);
-                    audio_ui_node.ui.output.gain = graph.insert_node(gain); // data storage
+                    audio_ui_node.ui.push_back( graph.insert_node(value) );
+                    audio_ui_node.ui.push_back( graph.insert_node(gain) ); // data storage
                     audio_ui_node.id = graph.insert_node(out);
 
-                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.output.input);
-                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.output.gain);
+                    
+//                    UiNode audio_ui_node;
+//                    audio_ui_node.type = NodeType::output;
+//                    audio_ui_node.ui.output.input = graph.insert_node(value);
+//                    audio_ui_node.ui.output.gain = graph.insert_node(gain); // data storage
+//                    audio_ui_node.id = graph.insert_node(out);
 
-                    ui_nodes.push_back(audio_ui_node);
+                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui[0]);
+                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui[1]);
+
+                    ui_nodes2.push_back(audio_ui_node);
                     ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
                     audio_root_node_id_ = audio_ui_node.id;
                 }
 
-                if (ImGui::MenuItem("WaveViewer"))
-                {
-                    print("Waveviewer insert");
-                    float* arr = new float[buffer_size]();
-                    arr[0] = 0.0;
-                    arr[1] = 1.0;
-                    arr[2] = 0.5;
-                    arr[3] = 0.25;
-
-                    const Node value(NodeType::value, arr);
-                    
-                    const Node view_buf_node(NodeType::value, new float[buffer_size]());
-
-                    const Node op(NodeType::waveviewer);
-
-                    UiNode audio_ui_node;
-                    audio_ui_node.type = NodeType::waveviewer;
-                    audio_ui_node.ui.waveviewer.input = graph.insert_node(value);
-                    audio_ui_node.ui.waveviewer.view_buf = graph.insert_node(view_buf_node);
-                    audio_ui_node.id = graph.insert_node(op);
-
-//                    audio_graph_.insert_edge(audio_ui_node.ui.waveviewer.input, audio_root_node_id_);
-                    
-                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.waveviewer.input);
-                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.waveviewer.view_buf);
-                    
-//                    print("root node", audio_root_node_id_);
-                    
-                    ui_nodes.push_back(audio_ui_node);
-                    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
-                    
-                    for(int i = 0; i < ui_nodes.size(); i++)
-                    {
-                        if(ui_nodes[i].type==NodeType::output)
-                        {
-                            graph.insert_edge(ui_nodes[i].ui.output.input, audio_ui_node.id);
-                        }
-                    }
-//                    graph.insert_edge(ui_nodes[0].ui.output.input, audio_ui_node.id);
-//                    print("'output' node input",ui_nodes[0].ui.output.input, "wv 'audio_ui_node.id'",audio_ui_node.id);
-//                    print("waveviewer audio_root_node_id_",audio_root_node_id_,"audio_ui_node.id",audio_ui_node.id,"audio_ui_node.ui.waveviewer.input",audio_ui_node.ui.waveviewer.input);
-
-                }
+//                if (ImGui::MenuItem("WaveViewer"))
+//                {
+//                    print("Waveviewer insert");
+//                    float* arr = new float[buffer_size]();
+//                    arr[0] = 0.0;
+//                    arr[1] = 1.0;
+//                    arr[2] = 0.5;
+//                    arr[3] = 0.25;
+//
+//                    const Node value(NodeType::value, arr);
+//
+//                    const Node view_buf_node(NodeType::value, new float[buffer_size]());
+//
+//                    const Node op(NodeType::waveviewer);
+//
+//                    UiNode audio_ui_node;
+//                    audio_ui_node.type = NodeType::waveviewer;
+//                    audio_ui_node.ui.waveviewer.input = graph.insert_node(value);
+//                    audio_ui_node.ui.waveviewer.view_buf = graph.insert_node(view_buf_node);
+//                    audio_ui_node.id = graph.insert_node(op);
+//
+////                    audio_graph_.insert_edge(audio_ui_node.ui.waveviewer.input, audio_root_node_id_);
+//
+//                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.waveviewer.input);
+//                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui.waveviewer.view_buf);
+//
+////                    print("root node", audio_root_node_id_);
+//
+//                    ui_nodes.push_back(audio_ui_node);
+//                    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
+//
+//                    for(int i = 0; i < ui_nodes.size(); i++)
+//                    {
+//                        if(ui_nodes[i].type==NodeType::output)
+//                        {
+//                            graph.insert_edge(ui_nodes[i].ui.output.input, audio_ui_node.id);
+//                        }
+//                    }
+////                    graph.insert_edge(ui_nodes[0].ui.output.input, audio_ui_node.id);
+////                    print("'output' node input",ui_nodes[0].ui.output.input, "wv 'audio_ui_node.id'",audio_ui_node.id);
+////                    print("waveviewer audio_root_node_id_",audio_root_node_id_,"audio_ui_node.id",audio_ui_node.id,"audio_ui_node.ui.waveviewer.input",audio_ui_node.ui.waveviewer.input);
+//
+//                }
 
                 ImGui::EndPopup();
             }
             ImGui::PopStyleVar();
         }
 
-        for (const UiNode& node : ui_nodes)
+        for (const uinode2& node : ui_nodes2)
         {
             switch (node.type)
             {
-            case NodeType::midi_in:
-            {
-                midiin_module_show(node, graph);
+                case NodeType::test_external:
+                {
+                    test_module::show_module(node, graph);
+                }
+                break;
+                case NodeType::output:
+                {
+                    const float node_width = 100.0f;
+    
+                    ImNodes::BeginNode(node.id);
+    
+                    ImNodes::BeginNodeTitleBar();
+                    char num_str[16], name[] = "output";
+                    sprintf(num_str, "%s (%d)", name, node.id);
+                    ImGui::TextUnformatted(num_str);
+                    ImNodes::EndNodeTitleBar();
+    
+                    ImNodes::BeginInputAttribute(node.ui[0]);
+                    ImGui::Text("input");
+                    ImNodes::EndInputAttribute();
+    
+                    ImGui::PushItemWidth(node_width);
+                    // // if (audio_graph_.num_edges_from_node(node.ui.output.gain) == 0ull)
+                    // // {
+                    //     print("value!!",audio_graph_.node(node.ui.output.gain).value[0]);
+                    // // }
+                    float* fa_gain_stupid = (float*)graph.node(node.ui[1]).value;
+                    ImGui::DragFloat("gain", &*fa_gain_stupid, 0.01f, 0.f, 1.0f);
+    
+    
+                    // float* float_arr = (float*)audio_graph_.node(node.ui.output.input).value;
+                    // for(int i = 0; i < 256; i++)
+                    // {
+                    //     print(float_arr[i]);
+                    // }
+                    // ImGui::PlotLines("##hidelabel", float_arr, 256);
+    
+                    ImGui::PopItemWidth();
+    
+                    ImNodes::EndNode();
+                }
+                break;
             }
-            break;
-            case NodeType::test_external:
-            {
-                test_module::show_module(node, graph);
-            }
-            break;
-            case NodeType::interface_in:
-            {
-                ImNodes::BeginNode(node.id);
-
-                ImNodes::BeginNodeTitleBar();
-                char num_str[16];
-                char name[] = "interface in";
-                sprintf(num_str, "%s (%d)", name, node.id);
-                ImGui::TextUnformatted(num_str);
-                ImNodes::EndNodeTitleBar();
-                
+        }
+        
+//        for (const UiNode& node : ui_nodes)
+//        {
+//            switch (node.type)
+//            {
+//            case NodeType::midi_in:
+//            {
+//                midiin_module_show(node, graph);
+//            }
+//            break;
+//            case NodeType::test_external:
+//            {
+//                test_module::show_module(node, graph);
+//            }
+//            break;
+//            case NodeType::interface_in:
+//            {
+//                ImNodes::BeginNode(node.id);
+//
+//                ImNodes::BeginNodeTitleBar();
+//                char num_str[16];
+//                char name[] = "interface in";
+//                sprintf(num_str, "%s (%d)", name, node.id);
+//                ImGui::TextUnformatted(num_str);
+//                ImNodes::EndNodeTitleBar();
+//
+////                static std::vector<std::string> names = {"sine","saw","square","triangle"};
+////                static const char *current_outputDeviceName = 0;
+////
+////                int* sc_type_num = (int*)    audio_graph_.node(node.ui.sine.osc_type).value;
+////                comboBox("osc type", names, sc_type_num);
+//
+////                ImNodes::BeginInputAttribute(node.ui.interface_in.input_buf);
+////                ImGui::TextUnformatted("input");
+////                ImNodes::EndInputAttribute();
+//
+//                ImNodes::BeginOutputAttribute(node.id);
+//                ImGui::Text("chan 1");
+//                ImNodes::EndOutputAttribute();
+//
+//                ImNodes::EndNode();
+//            }
+//            break;
+//            case NodeType::vst:
+//            {
+//                ImNodes::BeginNode(node.id);
+//
+//                ImNodes::BeginNodeTitleBar();
+//                char num_str[16];
+//                char name[] = "vst dummy";
+//                sprintf(num_str, "%s (%d)", name, node.id);
+//                ImGui::TextUnformatted(num_str);
+//                ImNodes::EndNodeTitleBar();
+//
+//
+//                ImNodes::BeginInputAttribute(node.ui.vst.input_buf);
+//                ImGui::TextUnformatted("input");
+//                ImNodes::EndInputAttribute();
+//
+//                ImNodes::BeginOutputAttribute(node.id);
+//                ImGui::Text("output");
+//                ImNodes::EndOutputAttribute();
+//
+//                ImGui::PushItemWidth(100.f);
+//
+//                ImGui::PopItemWidth();
+//
+//                ImNodes::EndNode();
+//            }
+//            break;
+//            case NodeType::sine:
+//            {
+//                ImNodes::BeginNode(node.id);
+//
+//                ImNodes::BeginNodeTitleBar();
+//                char num_str[16];
+//                char name[] = "osc gen";
+//                sprintf(num_str, "%s (%d)", name, node.id);
+//                ImGui::TextUnformatted(num_str);
+//                ImNodes::EndNodeTitleBar();
+//
+//                ImNodes::BeginOutputAttribute(node.id);
+//                ImGui::Text("output");
+//                ImNodes::EndOutputAttribute();
+//
+//                ImGui::PushItemWidth(100.f);
+//
 //                static std::vector<std::string> names = {"sine","saw","square","triangle"};
 //                static const char *current_outputDeviceName = 0;
 //
-//                int* sc_type_num = (int*)    audio_graph_.node(node.ui.sine.osc_type).value;
-//                comboBox("osc type", names, sc_type_num);
-
-//                ImNodes::BeginInputAttribute(node.ui.interface_in.input_buf);
-//                ImGui::TextUnformatted("input");
+//                float*  freq_num    = (float*)  graph.node(node.ui.sine.freq).value;
+//                int*    sc_type_num = (int*)    graph.node(node.ui.sine.osc_type).value;
+//                combo_box("osc type", names, sc_type_num);
+//                // print("yooo", *sc_type_num);
+//
+//                ImGui::DragFloat("freq", &*freq_num, 2.0f, 1.f, 1000.0f);
+//
+//                ImGui::PopItemWidth();
+//
+//                ImNodes::EndNode();
+//            }
+//            break;
+//            case NodeType::white:
+//            {
+//                ImNodes::BeginNode(node.id);
+//
+//                ImNodes::BeginNodeTitleBar();
+//                char num_str[16];
+//                char name[] = "white noise";
+//                sprintf(num_str, "%s (%d)", name, node.id);
+//                ImGui::TextUnformatted(num_str);
+//                ImNodes::EndNodeTitleBar();
+//
+//                ImNodes::BeginOutputAttribute(node.id);
+//                ImGui::Text("output");
+//                ImNodes::EndOutputAttribute();
+//
+//                ImNodes::EndNode();
+//            }
+//            break;
+//            case NodeType::waveviewer:
+//            {
+//                ImNodes::BeginNode(node.id);
+//
+//                ImNodes::BeginNodeTitleBar();
+//                char num_str[16];
+//                char name[] = "wave viewer";
+//                sprintf(num_str, "%s (%d)", name, node.id);
+//                ImGui::TextUnformatted(num_str);
+//                ImNodes::EndNodeTitleBar();
+//
+//                ImNodes::BeginInputAttribute(node.ui.waveviewer.input);
+//                ImGui::Text("input");
+//                ImNodes::EndOutputAttribute();
+//
+//                ImGui::PushItemWidth(150.f);
+//                float* float_arr = (float*)graph.node(node.ui.waveviewer.view_buf).value;
+////                 for(int i = 0; i < buffer_size; i++)
+////                 {
+////                     print(float_arr[i]);
+////                 }
+//
+//                ImGui::PlotLines("##hidelabel", float_arr, 256);
+//                ImGui::PopItemWidth();
+//
+//                ImNodes::BeginOutputAttribute(node.id);
+//                ImGui::Text("out");
+//                ImNodes::EndOutputAttribute();
+//
+//                ImNodes::EndNode();
+//            }
+//            break;
+//            case NodeType::xfader:
+//            {
+//                const float node_width = 100.0f;
+//                ImNodes::BeginNode(node.id);
+//
+//                ImNodes::BeginNodeTitleBar();
+//                char num_str[16];
+//                char name[] = "xfader";
+//                sprintf(num_str, "%s (%d)", name, node.id);
+//                ImGui::TextUnformatted(num_str);
+//                ImNodes::EndNodeTitleBar();
+//
+//            // static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
+//            // ImGui::PlotLines("Curve", arr, IM_ARRAYSIZE(arr));
+//
+//                {
+//                    ImNodes::BeginInputAttribute(node.ui.xfader.input_a);
+////                    const float label_width = ImGui::CalcTextSize("a").x;
+//                    ImGui::TextUnformatted("a");
+//                    ImNodes::EndInputAttribute();
+//                }
+//
+//
+//                {
+//                    ImNodes::BeginInputAttribute(node.ui.xfader.input_b);
+////                    const float label_width = ImGui::CalcTextSize("b").x;
+//                    ImGui::TextUnformatted("b");
+//                    ImNodes::EndInputAttribute();
+//                }
+//
+//                ImGui::PushItemWidth(node_width);
+//                float* amount_ptr = (float*)graph.node(node.ui.xfader.amount).value;
+//                ImGui::DragFloat("##hidelabel", &*amount_ptr, 0.01f, 0.f, 1.0f);
+//                ImGui::PushItemWidth(node_width);
+//
+//                ImNodes::BeginOutputAttribute(node.id);
+//                ImGui::Text("out");
+//                ImNodes::EndOutputAttribute();
+//
+//                ImNodes::EndNode();
+//
+//            }
+//            break;
+//            case NodeType::output:
+//            {
+//                const float node_width = 100.0f;
+//
+//                ImNodes::BeginNode(node.id);
+//
+//                ImNodes::BeginNodeTitleBar();
+//                char num_str[16], name[] = "output";
+//                sprintf(num_str, "%s (%d)", name, node.id);
+//                ImGui::TextUnformatted(num_str);
+//                ImNodes::EndNodeTitleBar();
+//
+//                ImNodes::BeginInputAttribute(node.ui.output.input);
+//                ImGui::Text("input");
 //                ImNodes::EndInputAttribute();
-
-                ImNodes::BeginOutputAttribute(node.id);
-                ImGui::Text("chan 1");
-                ImNodes::EndOutputAttribute();
-                
-                ImNodes::EndNode();
-            }
-            break;
-            case NodeType::vst:
-            {
-                ImNodes::BeginNode(node.id);
-
-                ImNodes::BeginNodeTitleBar();
-                char num_str[16];
-                char name[] = "vst dummy";
-                sprintf(num_str, "%s (%d)", name, node.id);
-                ImGui::TextUnformatted(num_str);
-                ImNodes::EndNodeTitleBar();
-
-
-                ImNodes::BeginInputAttribute(node.ui.vst.input_buf);
-                ImGui::TextUnformatted("input");
-                ImNodes::EndInputAttribute();
-
-                ImNodes::BeginOutputAttribute(node.id);
-                ImGui::Text("output");
-                ImNodes::EndOutputAttribute();
-
-                ImGui::PushItemWidth(100.f);
-
-                ImGui::PopItemWidth();
-
-                ImNodes::EndNode();
-            }
-            break;
-            case NodeType::sine:
-            {
-                ImNodes::BeginNode(node.id);
-
-                ImNodes::BeginNodeTitleBar();
-                char num_str[16];
-                char name[] = "osc gen";
-                sprintf(num_str, "%s (%d)", name, node.id);
-                ImGui::TextUnformatted(num_str);
-                ImNodes::EndNodeTitleBar();
-
-                ImNodes::BeginOutputAttribute(node.id);
-                ImGui::Text("output");
-                ImNodes::EndOutputAttribute();
-
-                ImGui::PushItemWidth(100.f);
-
-                static std::vector<std::string> names = {"sine","saw","square","triangle"};
-                static const char *current_outputDeviceName = 0;
-
-                float*  freq_num    = (float*)  graph.node(node.ui.sine.freq).value;
-                int*    sc_type_num = (int*)    graph.node(node.ui.sine.osc_type).value;
-                combo_box("osc type", names, sc_type_num);
-                // print("yooo", *sc_type_num);
-
-                ImGui::DragFloat("freq", &*freq_num, 2.0f, 1.f, 1000.0f);
-               
-                ImGui::PopItemWidth();
-
-                ImNodes::EndNode();
-            }
-            break;
-            case NodeType::white:
-            {
-                ImNodes::BeginNode(node.id);
-
-                ImNodes::BeginNodeTitleBar();
-                char num_str[16];
-                char name[] = "white noise";
-                sprintf(num_str, "%s (%d)", name, node.id);
-                ImGui::TextUnformatted(num_str);
-                ImNodes::EndNodeTitleBar();
-
-                ImNodes::BeginOutputAttribute(node.id);
-                ImGui::Text("output");
-                ImNodes::EndOutputAttribute();
-
-                ImNodes::EndNode();
-            }
-            break;
-            case NodeType::waveviewer:
-            {
-                ImNodes::BeginNode(node.id);
-
-                ImNodes::BeginNodeTitleBar();
-                char num_str[16];
-                char name[] = "wave viewer";
-                sprintf(num_str, "%s (%d)", name, node.id);
-                ImGui::TextUnformatted(num_str);
-                ImNodes::EndNodeTitleBar();
-
-                ImNodes::BeginInputAttribute(node.ui.waveviewer.input);
-                ImGui::Text("input");
-                ImNodes::EndOutputAttribute();
-
-                ImGui::PushItemWidth(150.f);
-                float* float_arr = (float*)graph.node(node.ui.waveviewer.view_buf).value;
-//                 for(int i = 0; i < buffer_size; i++)
-//                 {
-//                     print(float_arr[i]);
-//                 }
-
-                ImGui::PlotLines("##hidelabel", float_arr, 256);
-                ImGui::PopItemWidth();
-
-                ImNodes::BeginOutputAttribute(node.id);
-                ImGui::Text("out");
-                ImNodes::EndOutputAttribute();
-
-                ImNodes::EndNode();
-            }
-            break;
-            case NodeType::xfader:
-            {
-                const float node_width = 100.0f;
-                ImNodes::BeginNode(node.id);
-
-                ImNodes::BeginNodeTitleBar();
-                char num_str[16];
-                char name[] = "xfader";
-                sprintf(num_str, "%s (%d)", name, node.id);
-                ImGui::TextUnformatted(num_str);
-                ImNodes::EndNodeTitleBar();
-
-            // static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
-            // ImGui::PlotLines("Curve", arr, IM_ARRAYSIZE(arr));
-
-                {
-                    ImNodes::BeginInputAttribute(node.ui.xfader.input_a);
-//                    const float label_width = ImGui::CalcTextSize("a").x;
-                    ImGui::TextUnformatted("a");
-                    ImNodes::EndInputAttribute();
-                }
-
-
-                {
-                    ImNodes::BeginInputAttribute(node.ui.xfader.input_b);
-//                    const float label_width = ImGui::CalcTextSize("b").x;
-                    ImGui::TextUnformatted("b");
-                    ImNodes::EndInputAttribute();
-                }
-
-                ImGui::PushItemWidth(node_width);
-                float* amount_ptr = (float*)graph.node(node.ui.xfader.amount).value;
-                ImGui::DragFloat("##hidelabel", &*amount_ptr, 0.01f, 0.f, 1.0f);
-                ImGui::PushItemWidth(node_width);
-
-                ImNodes::BeginOutputAttribute(node.id);
-                ImGui::Text("out");
-                ImNodes::EndOutputAttribute();
-
-                ImNodes::EndNode();
-
-            }
-            break;
-            case NodeType::output:
-            {
-                const float node_width = 100.0f;
-
-                ImNodes::BeginNode(node.id);
-
-                ImNodes::BeginNodeTitleBar();
-                char num_str[16], name[] = "output";
-                sprintf(num_str, "%s (%d)", name, node.id);
-                ImGui::TextUnformatted(num_str);
-                ImNodes::EndNodeTitleBar();
-
-                ImNodes::BeginInputAttribute(node.ui.output.input);
-                ImGui::Text("input");
-                ImNodes::EndInputAttribute();
-
-                ImGui::PushItemWidth(node_width);
-                // // if (audio_graph_.num_edges_from_node(node.ui.output.gain) == 0ull)
-                // // {
-                //     print("value!!",audio_graph_.node(node.ui.output.gain).value[0]);
-                // // }
-                float* fa_gain_stupid = (float*)graph.node(node.ui.output.gain).value;
-                ImGui::DragFloat("gain", &*fa_gain_stupid, 0.01f, 0.f, 1.0f);
-
-
-                // float* float_arr = (float*)audio_graph_.node(node.ui.output.input).value;
-                // for(int i = 0; i < 256; i++)
-                // {
-                //     print(float_arr[i]);
-                // }
-                // ImGui::PlotLines("##hidelabel", float_arr, 256);
-
-                ImGui::PopItemWidth();
-
-                ImNodes::EndNode();
-            }
-            break;
-            }
-        }      
+//
+//                ImGui::PushItemWidth(node_width);
+//                // // if (audio_graph_.num_edges_from_node(node.ui.output.gain) == 0ull)
+//                // // {
+//                //     print("value!!",audio_graph_.node(node.ui.output.gain).value[0]);
+//                // // }
+//                float* fa_gain_stupid = (float*)graph.node(node.ui.output.gain).value;
+//                ImGui::DragFloat("gain", &*fa_gain_stupid, 0.01f, 0.f, 1.0f);
+//
+//
+//                // float* float_arr = (float*)audio_graph_.node(node.ui.output.input).value;
+//                // for(int i = 0; i < 256; i++)
+//                // {
+//                //     print(float_arr[i]);
+//                // }
+//                // ImGui::PlotLines("##hidelabel", float_arr, 256);
+//
+//                ImGui::PopItemWidth();
+//
+//                ImNodes::EndNode();
+//            }
+//            break;
+//            }
+//        }
 
         for (const auto& edge : graph.edges())
         {
@@ -1029,10 +830,12 @@ public:
         // ImGui::PopStyleColor();
     }
 
-    Graph<Node>       graph;
-    std::vector<UiNode>    ui_nodes;
-    int                    root_node_id_;
-    int                    audio_root_node_id_;
+    Graph<Node> graph;
+    std::vector<UiNode> ui_nodes;
+    std::vector<uinode2> ui_nodes2;
+    std::vector<std::string> node_types;
+    int root_node_id_;
+    int audio_root_node_id_;
     ImNodesMiniMapLocation minimap_location_;
 };
 
@@ -1046,6 +849,23 @@ void NodeEditorInitialize()
     ImNodesIO& io = ImNodes::GetIO();
     io.LinkDetachWithModifierClick.Modifier = &ImGui::GetIO().KeyCtrl;
     ImNodes::StyleColorsClassic();
+    
+//    color_editor.node_types.push_back("value");
+//    color_editor.ui_nodes2.push_back({ 0 });
+//
+//    color_editor.node_types.push_back("osc");
+//    color_editor.ui_nodes2.push_back({ 1 });
+//
+//    color_editor.node_types.push_back("output");
+//    color_editor.ui_nodes2.push_back({ 2 });
+    
+//    // Function signature for the functions that the vector will store
+//    using ProcessFunc = void (*)(std::stack<void *> &);
+//
+//    // Vector to store the pointers to the functions
+//    std::vector<ProcessFunc> funcs;
+//    
+//    funcs.push_back(midiin_module_process);
 }
 
 float* audio_output = new float[buffer_size]();

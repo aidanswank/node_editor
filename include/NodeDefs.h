@@ -37,6 +37,12 @@ struct Node
 //     int freq;
 // };
 
+struct uinode2
+{
+    NodeType type;
+    int id;
+    std::vector<int> ui;
+};
 
 struct UiNode
 {

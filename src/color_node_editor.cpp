@@ -415,7 +415,7 @@ public:
         {
             const bool open_popup = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
                                     ImNodes::IsEditorHovered() &&
-                                    ImGui::IsKeyReleased(SDL_SCANCODE_A);
+                                    ImGui::IsKeyReleased((ImGuiKey)SDL_SCANCODE_A);
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.f, 8.f));
             if (!ImGui::IsAnyItemHovered() && open_popup)
@@ -966,7 +966,7 @@ public:
         // audio nodes deleting links
         {
             const int num_selected = ImNodes::NumSelectedLinks();
-            if (num_selected > 0 && ImGui::IsKeyReleased(SDL_SCANCODE_X))
+            if (num_selected > 0 && ImGui::IsKeyReleased((ImGuiKey)SDL_SCANCODE_X))
             {
                 static std::vector<int> selected_links;
                 selected_links.resize(static_cast<size_t>(num_selected));
@@ -980,7 +980,7 @@ public:
 
         {
             const int num_selected = ImNodes::NumSelectedNodes();
-            if (num_selected > 0 && ImGui::IsKeyReleased(SDL_SCANCODE_X))
+            if (num_selected > 0 && ImGui::IsKeyReleased((ImGuiKey)SDL_SCANCODE_X))
             {
                 static std::vector<int> selected_nodes;
                 selected_nodes.resize(static_cast<size_t>(num_selected));

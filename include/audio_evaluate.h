@@ -202,37 +202,37 @@ float* audio_evaluate(const Graph<Node>& graph, const int root_node)
         break;
         case NodeType::output:
         {
-            float *gain_arr = (float*)value_stack.top();
-            // print("yooo",gain_arr[0]);
-            value_stack.pop();
-            
-            res = (float*)value_stack.top();
-            value_stack.pop();
-                            
-//              print("REMAINING NODES!", value_stack.size());
-            std::vector<float*> to_be_mixed;
-            for(int i = 0; i < value_stack.size(); i++)
-            {
-                float* audio = (float*)value_stack.top();
-                value_stack.pop();
-                to_be_mixed.push_back(audio);
-            }
-
-            // adjust gain by knob
-            for(int i = 0; i < buffer_size; i++)
-            {
-                // MIXED UP REMAINING NODES
-                for(int j = 0; j < to_be_mixed.size(); j++)
-                {
-                    res[i] += to_be_mixed[j][i];
-                }
-            }
-            
-            for(int i = 0; i < buffer_size; i++)
-            {
-                res[i] *= (*gain_arr); // accessing [0]
-            }
-                
+            output_module_process(res, value_stack);
+//            float *gain_arr = (float*)value_stack.top();
+//            // print("yooo",gain_arr[0]);
+//            value_stack.pop();
+//
+//            res = (float*)value_stack.top();
+//            value_stack.pop();
+//
+////              print("REMAINING NODES!", value_stack.size());
+//            std::vector<float*> to_be_mixed;
+//            for(int i = 0; i < value_stack.size(); i++)
+//            {
+//                float* audio = (float*)value_stack.top();
+//                value_stack.pop();
+//                to_be_mixed.push_back(audio);
+//            }
+//
+//            // adjust gain by knob
+//            for(int i = 0; i < buffer_size; i++)
+//            {
+//                // MIXED UP REMAINING NODES
+//                for(int j = 0; j < to_be_mixed.size(); j++)
+//                {
+//                    res[i] += to_be_mixed[j][i];
+//                }
+//            }
+//
+//            for(int i = 0; i < buffer_size; i++)
+//            {
+//                res[i] *= (*gain_arr); // accessing [0]
+//            }
         }
 
         break;

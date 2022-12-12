@@ -21,6 +21,7 @@ int buffer_size = 256;
 
 #include "test_module.h"
 #include "midi_in_module.h"
+#include "output_module.h"
 
 namespace example
 {
@@ -339,32 +340,33 @@ public:
 
                 if (ImGui::MenuItem("AudioOutput") && audio_root_node_id_ == -1)
                 {
-                    print("audio ouput node");
-                    float* arr = new float[buffer_size]();
-                    const Node value(NodeType::value, arr);
-                    float* gain_ptr = new float(0.123);
-                    const Node gain(NodeType::value, gain_ptr);
-                    const Node out(NodeType::output);
-
-                    uinode2 audio_ui_node;
-                    audio_ui_node.type = NodeType::output;
-                    audio_ui_node.ui.push_back( graph.insert_node(value) );
-                    audio_ui_node.ui.push_back( graph.insert_node(gain) ); // data storage
-                    audio_ui_node.id = graph.insert_node(out);
-
-                    
-//                    UiNode audio_ui_node;
+                    output_module_init(audio_root_node_id_, click_pos, graph, ui_nodes2);
+//                    print("audio ouput node");
+//                    float* arr = new float[buffer_size]();
+//                    const Node value(NodeType::value, arr);
+//                    float* gain_ptr = new float(0.123);
+//                    const Node gain(NodeType::value, gain_ptr);
+//                    const Node out(NodeType::output);
+//
+//                    uinode2 audio_ui_node;
 //                    audio_ui_node.type = NodeType::output;
-//                    audio_ui_node.ui.output.input = graph.insert_node(value);
-//                    audio_ui_node.ui.output.gain = graph.insert_node(gain); // data storage
+//                    audio_ui_node.ui.push_back( graph.insert_node(value) );
+//                    audio_ui_node.ui.push_back( graph.insert_node(gain) ); // data storage
 //                    audio_ui_node.id = graph.insert_node(out);
-
-                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui[0]);
-                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui[1]);
-
-                    ui_nodes2.push_back(audio_ui_node);
-                    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
-                    audio_root_node_id_ = audio_ui_node.id;
+//
+//
+////                    UiNode audio_ui_node;
+////                    audio_ui_node.type = NodeType::output;
+////                    audio_ui_node.ui.output.input = graph.insert_node(value);
+////                    audio_ui_node.ui.output.gain = graph.insert_node(gain); // data storage
+////                    audio_ui_node.id = graph.insert_node(out);
+//
+//                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui[0]);
+//                    graph.insert_edge(audio_ui_node.id, audio_ui_node.ui[1]);
+//
+//                    ui_nodes2.push_back(audio_ui_node);
+//                    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
+//                    audio_root_node_id_ = audio_ui_node.id;
                 }
 
 //                if (ImGui::MenuItem("WaveViewer"))
@@ -427,39 +429,40 @@ public:
                 break;
                 case NodeType::output:
                 {
-                    const float node_width = 100.0f;
-    
-                    ImNodes::BeginNode(node.id);
-    
-                    ImNodes::BeginNodeTitleBar();
-                    char num_str[16], name[] = "output";
-                    sprintf(num_str, "%s (%d)", name, node.id);
-                    ImGui::TextUnformatted(num_str);
-                    ImNodes::EndNodeTitleBar();
-    
-                    ImNodes::BeginInputAttribute(node.ui[0]);
-                    ImGui::Text("input");
-                    ImNodes::EndInputAttribute();
-    
-                    ImGui::PushItemWidth(node_width);
-                    // // if (audio_graph_.num_edges_from_node(node.ui.output.gain) == 0ull)
-                    // // {
-                    //     print("value!!",audio_graph_.node(node.ui.output.gain).value[0]);
-                    // // }
-                    float* fa_gain_stupid = (float*)graph.node(node.ui[1]).value;
-                    ImGui::DragFloat("gain", &*fa_gain_stupid, 0.01f, 0.f, 1.0f);
-    
-    
-                    // float* float_arr = (float*)audio_graph_.node(node.ui.output.input).value;
-                    // for(int i = 0; i < 256; i++)
-                    // {
-                    //     print(float_arr[i]);
-                    // }
-                    // ImGui::PlotLines("##hidelabel", float_arr, 256);
-    
-                    ImGui::PopItemWidth();
-    
-                    ImNodes::EndNode();
+                    output_module_show(node, graph);
+//                    const float node_width = 100.0f;
+//
+//                    ImNodes::BeginNode(node.id);
+//
+//                    ImNodes::BeginNodeTitleBar();
+//                    char num_str[16], name[] = "output";
+//                    sprintf(num_str, "%s (%d)", name, node.id);
+//                    ImGui::TextUnformatted(num_str);
+//                    ImNodes::EndNodeTitleBar();
+//
+//                    ImNodes::BeginInputAttribute(node.ui[0]);
+//                    ImGui::Text("input");
+//                    ImNodes::EndInputAttribute();
+//
+//                    ImGui::PushItemWidth(node_width);
+//                    // // if (audio_graph_.num_edges_from_node(node.ui.output.gain) == 0ull)
+//                    // // {
+//                    //     print("value!!",audio_graph_.node(node.ui.output.gain).value[0]);
+//                    // // }
+//                    float* fa_gain_stupid = (float*)graph.node(node.ui[1]).value;
+//                    ImGui::DragFloat("gain", &*fa_gain_stupid, 0.01f, 0.f, 1.0f);
+//
+//
+//                    // float* float_arr = (float*)audio_graph_.node(node.ui.output.input).value;
+//                    // for(int i = 0; i < 256; i++)
+//                    // {
+//                    //     print(float_arr[i]);
+//                    // }
+//                    // ImGui::PlotLines("##hidelabel", float_arr, 256);
+//
+//                    ImGui::PopItemWidth();
+//
+//                    ImNodes::EndNode();
                 }
                 break;
             }

@@ -142,7 +142,7 @@ void test_module::show_module(const uinode2 &node, example::Graph<Node> &audio_g
     static const char *current_outputDeviceName = 0;
 
 //    float *freq_num = (float *)audio_graph_.node(node.ui.test_external.freq).value;
-    int *sc_type_num = (int *)audio_graph_.node(node.ui[0]).value;
+    int *sc_type_num = (int *)audio_graph_.node(node.ui[3]).value;
     test_module::combo_box("osc type", names, sc_type_num);
     // print("yooo", *sc_type_num);
 

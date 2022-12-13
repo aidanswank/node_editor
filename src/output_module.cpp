@@ -1,16 +1,16 @@
 #include "output_module.h"
 
-void output_module_init(int &audio_root_node_id_, ImVec2 click_pos, example::Graph<Node> &graph, std::vector<uinode2> &ui_nodes)
+void output_module_init(int &audio_root_node_id_, ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes)
 {
     print("audio ouput node");
     float* arr = new float[256]();
-    const Node value(NodeType::value, arr);
+    const Node2 value("value", arr);
     float* gain_ptr = new float(0.123);
-    const Node gain(NodeType::value, gain_ptr);
-    const Node out(NodeType::output);
+    const Node2 gain("value", gain_ptr);
+    const Node2 out("output");
 
     uinode2 audio_ui_node;
-    audio_ui_node.type = NodeType::output;
+    audio_ui_node.type = "output";
     audio_ui_node.ui.push_back( graph.insert_node(value) );
     audio_ui_node.ui.push_back( graph.insert_node(gain) ); // data storage
     audio_ui_node.id = graph.insert_node(out);
@@ -29,7 +29,7 @@ void output_module_init(int &audio_root_node_id_, ImVec2 click_pos, example::Gra
     ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
     audio_root_node_id_ = audio_ui_node.id;
 };
-void output_module_show(const uinode2 &node, example::Graph<Node> &graph)
+void output_module_show(const uinode2 &node, example::Graph<Node2> &graph)
 {
     const float node_width = 100.0f;
 

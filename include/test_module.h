@@ -24,10 +24,10 @@ class test_module
 {
 public:
 //    template <typename T>
-    static void init_module(ImVec2 click_pos, example::Graph<Node> &audio_graph_, std::vector<uinode2> &ui_nodes_);
+    static void init_module(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_, std::vector<std::string> &node_types);
     static void process_module(std::stack<void *> &value_stack);
 //    template <typename T>
-    static void show_module(const uinode2 &node, example::Graph<Node> &audio_graph_);
+    static void show_module(const uinode2 &node, example::Graph<Node2> &audio_graph_);
     
     //more
     static void combo_box(const char *combo_box_name, std::vector<std::string> &item_names, int *select_choice)

@@ -183,7 +183,7 @@ public:
                 // TEST EXTERNAL
                 if (ImGui::MenuItem("TEST_EXTERNAL"))
                 {
-                    test_module::init_module(click_pos, graph, ui_nodes2);
+                    test_module::init_module(click_pos, graph2, ui_nodes2, node_types);
                 }
 ////
 //                if(ImGui::MenuItem("AudioInterfaceIn"))
@@ -340,7 +340,7 @@ public:
 
                 if (ImGui::MenuItem("AudioOutput") && audio_root_node_id_ == -1)
                 {
-                    output_module_init(audio_root_node_id_, click_pos, graph, ui_nodes2);
+                    output_module_init(audio_root_node_id_, click_pos, graph2, ui_nodes2);
 //                    print("audio ouput node");
 //                    float* arr = new float[buffer_size]();
 //                    const Node value(NodeType::value, arr);
@@ -420,52 +420,27 @@ public:
 
         for (const uinode2& node : ui_nodes2)
         {
-            switch (node.type)
+            if(node.type=="osc")
             {
-                case NodeType::test_external:
-                {
-                    test_module::show_module(node, graph);
-                }
-                break;
-                case NodeType::output:
-                {
-                    output_module_show(node, graph);
-//                    const float node_width = 100.0f;
-//
-//                    ImNodes::BeginNode(node.id);
-//
-//                    ImNodes::BeginNodeTitleBar();
-//                    char num_str[16], name[] = "output";
-//                    sprintf(num_str, "%s (%d)", name, node.id);
-//                    ImGui::TextUnformatted(num_str);
-//                    ImNodes::EndNodeTitleBar();
-//
-//                    ImNodes::BeginInputAttribute(node.ui[0]);
-//                    ImGui::Text("input");
-//                    ImNodes::EndInputAttribute();
-//
-//                    ImGui::PushItemWidth(node_width);
-//                    // // if (audio_graph_.num_edges_from_node(node.ui.output.gain) == 0ull)
-//                    // // {
-//                    //     print("value!!",audio_graph_.node(node.ui.output.gain).value[0]);
-//                    // // }
-//                    float* fa_gain_stupid = (float*)graph.node(node.ui[1]).value;
-//                    ImGui::DragFloat("gain", &*fa_gain_stupid, 0.01f, 0.f, 1.0f);
-//
-//
-//                    // float* float_arr = (float*)audio_graph_.node(node.ui.output.input).value;
-//                    // for(int i = 0; i < 256; i++)
-//                    // {
-//                    //     print(float_arr[i]);
-//                    // }
-//                    // ImGui::PlotLines("##hidelabel", float_arr, 256);
-//
-//                    ImGui::PopItemWidth();
-//
-//                    ImNodes::EndNode();
-                }
-                break;
+                test_module::show_module(node, graph2);
             }
+            if(node.type=="output")
+            {
+                output_module_show(node, graph2);
+            }
+//            switch (node.type)
+//            {
+//                case NodeType::test_external:
+//                {
+//                    test_module::show_module(node, graph);
+//                }
+//                break;
+//                case NodeType::output:
+//                {
+//                    output_module_show(node, graph);
+//                }
+//                break;
+//            }
         }
         
 //        for (const UiNode& node : ui_nodes)
@@ -702,7 +677,7 @@ public:
 //            }
 //        }
 
-        for (const auto& edge : graph.edges())
+        for (const auto& edge : graph2.edges())
         {
             
             // audio_graph_.node(edge.from).type
@@ -717,7 +692,7 @@ public:
             //         "totype", (int)audio_graph_.node(edge.to).type,
             //         "toval", audio_graph_.node(edge.to).value
             //     );
-            if (graph.node(edge.from).type == NodeType::value){
+            if (graph2.node(edge.from).type == "value"){
                 // print("skipped?");
                 // continue; // skip 1 iteration of the loop, not linking below
                 ImNodes::Link(edge.id, edge.from, edge.to);
@@ -737,21 +712,21 @@ public:
             if (ImNodes::IsLinkCreated(&start_attr, &end_attr))
             {
                 // print("hey!!!",start_attr, end_attr);
-                const NodeType start_type = graph.node(start_attr).type;
-                const NodeType end_type = graph.node(end_attr).type;
+                const std::string start_type = graph2.node(start_attr).type;
+                const std::string end_type = graph2.node(end_attr).type;
 
                 const bool valid_link = start_type != end_type;
                 if (valid_link)
                 {
                     // Ensure the edge is always directed from the value to
                     // whatever produces the value
-                    if (start_type != NodeType::value)
+                    if (start_type != "value")
                     {
                         std::swap(start_attr, end_attr);
                         print("swapped?", start_attr, end_attr);
                     }
                     print("is valid link", start_attr, end_attr);
-                    graph.insert_edge(start_attr, end_attr);
+                    graph2.insert_edge(start_attr, end_attr);
                 }
             }
         }
@@ -763,7 +738,7 @@ public:
             int link_id;
             if (ImNodes::IsLinkDestroyed(&link_id))
             {
-                graph.erase_edge(link_id);
+                graph2.erase_edge(link_id);
             }
         }
 
@@ -834,6 +809,7 @@ public:
     }
 
     Graph<Node> graph;
+    Graph<Node2> graph2;
     std::vector<UiNode> ui_nodes;
     std::vector<uinode2> ui_nodes2;
     std::vector<std::string> node_types;
@@ -853,14 +829,9 @@ void NodeEditorInitialize()
     io.LinkDetachWithModifierClick.Modifier = &ImGui::GetIO().KeyCtrl;
     ImNodes::StyleColorsClassic();
     
-//    color_editor.node_types.push_back("value");
-//    color_editor.ui_nodes2.push_back({ 0 });
-//
-//    color_editor.node_types.push_back("osc");
-//    color_editor.ui_nodes2.push_back({ 1 });
-//
-//    color_editor.node_types.push_back("output");
-//    color_editor.ui_nodes2.push_back({ 2 });
+    color_editor.node_types.push_back("value");
+    color_editor.node_types.push_back("output");
+    color_editor.node_types.push_back("osc");
     
 //    // Function signature for the functions that the vector will store
 //    using ProcessFunc = void (*)(std::stack<void *> &);
@@ -887,7 +858,7 @@ float* NodeEditorAudioCallback()
     // print("audio_root_node_id",color_editor.audio_root_node_id_);
     if(color_editor.audio_root_node_id_ != -1)
     {
-        audio_output = audio_evaluate(color_editor.graph, color_editor.audio_root_node_id_);
+        audio_output = audio_evaluate(color_editor.graph2, color_editor.audio_root_node_id_);
     }
     return audio_output;
 }

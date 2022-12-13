@@ -1,7 +1,9 @@
 #include "test_module.h"
-#include "midi_in_module.h"
+//#include "midi_in_module.h"
 
-void test_module::init_module(ImVec2 click_pos, example::Graph<Node> &audio_graph_, std::vector<uinode2> &ui_nodes_)
+enum PARAM { osc, freq, osc_type, output, kParams };
+
+void test_module::init_module(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_, std::vector<std::string> &node_types)
 {
     print("test module init");
 
@@ -13,28 +15,32 @@ void test_module::init_module(ImVec2 click_pos, example::Graph<Node> &audio_grap
 
     float *freq_num = new float(220.0);
 
-    const Node osc_node(NodeType::value, (void *)osc);
-    const Node freq_node(NodeType::value, (void *)freq_num);
-    const Node osc_type_node(NodeType::value, (void *)new int(0)); // type 0 sine
-    const Node osc_out_node(NodeType::value, (void *)osc_output);
+    const Node2 osc_node("value", (void *)osc);
+    const Node2 freq_node("value", (void *)freq_num);
+    const Node2 osc_type_node("value", (void *)new int(0)); // type 0 sine
+    const Node2 osc_out_node("value", (void *)osc_output);
     
-    UserData* midiin_userdata_ptr = new UserData;
-    const Node midiin_data_node(NodeType::value, midiin_userdata_ptr);
+//    UserData* midiin_userdata_ptr = new UserData;
+//    const Node midiin_data_node(NodeType::value, midiin_userdata_ptr);
 
-    uinode2 audio_ui_node;
-    audio_ui_node.type = NodeType::test_external;
-    audio_ui_node.id = audio_graph_.insert_node( Node( audio_ui_node.type ) );
-    audio_ui_node.ui.push_back( audio_graph_.insert_node( midiin_data_node ) );
-    audio_ui_node.ui.push_back( audio_graph_.insert_node( osc_node ) );
-    audio_ui_node.ui.push_back( audio_graph_.insert_node( freq_node ) );
-    audio_ui_node.ui.push_back( audio_graph_.insert_node( osc_type_node ) );
-    audio_ui_node.ui.push_back( audio_graph_.insert_node( osc_out_node ) );
+    uinode2 ui_node;
+    ui_node.type = "osc";
+    ui_node.id = audio_graph_.insert_node( Node2( ui_node.type ) );
+//    ui_node.ui.push_back( audio_graph_.insert_node( midiin_data_node ) );
+    ui_node.ui.push_back( audio_graph_.insert_node( osc_node ) );
+    ui_node.ui.push_back( audio_graph_.insert_node( freq_node ) );
+    ui_node.ui.push_back( audio_graph_.insert_node( osc_type_node ) );
+    ui_node.ui.push_back( audio_graph_.insert_node( osc_out_node ) );
     
-    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[0] );
-    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[1] );
-    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[2] );
-    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[3] );
-    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[4] );
+    for(int i = 0; i < PARAM::kParams; i++)
+    {
+        audio_graph_.insert_edge(ui_node.id, ui_node.ui[i]);
+    }
+//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[0]);
+//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[1]);
+//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[2]);
+//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[3]);
+//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[4]);
 
     
 //    UiNode audio_ui_node;
@@ -52,9 +58,9 @@ void test_module::init_module(ImVec2 click_pos, example::Graph<Node> &audio_grap
 //    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.test_external.osc_type);
 //    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.test_external.osc_output);
 
-    ui_nodes_.push_back(audio_ui_node);
+    ui_nodes_.push_back(ui_node);
 
-    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
+    ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
 };
 
 void test_module::process_module(std::stack<void *> &value_stack)
@@ -79,23 +85,22 @@ void test_module::process_module(std::stack<void *> &value_stack)
     // print("yooo",gain_arr[0]);
     value_stack.pop();
 
-//    float freq2 = 0.0;
-    UserData *userdata_ptr = (UserData *)value_stack.top();
-    while (true) {
-        MidiNoteMessage note;
-        bool hasNotes = userdata_ptr->notesQueue.try_dequeue(note);
-        if (!hasNotes) {
-                break;
-        }
-        if (note.isNoteOn) {
-            std::cout << "node on " << note.noteNum << std::endl;
-            *slider_ptr = midi2Freq(note.noteNum);
-        } else {
-            std::cout << "node off" << std::endl;
-        }
-    }
-    value_stack.pop();
-//    std::cout << freq << std::endl;
+////    float freq2 = 0.0;
+//    UserData *userdata_ptr = (UserData *)value_stack.top();
+//    while (true) {
+//        MidiNoteMessage note;
+//        bool hasNotes = userdata_ptr->notesQueue.try_dequeue(note);
+//        if (!hasNotes) {
+//                break;
+//        }
+//        if (note.isNoteOn) {
+//            std::cout << "node on " << note.noteNum << std::endl;
+//            *slider_ptr = midi2Freq(note.noteNum);
+//        } else {
+//            std::cout << "node off" << std::endl;
+//        }
+//    }
+//    value_stack.pop();
     
     //            float* output = new float[buffer_size]();
     osc_ptr->setFrequency(*slider_ptr);
@@ -116,7 +121,8 @@ void test_module::process_module(std::stack<void *> &value_stack)
     
 };
 
-void test_module::show_module(const uinode2 &node, example::Graph<Node> &audio_graph_)
+#define GET_UI(x) node.ui[x]
+void test_module::show_module(const uinode2 &node, example::Graph<Node2> &audio_graph_)
 {
     ImNodes::BeginNode(node.id);
 
@@ -128,9 +134,9 @@ void test_module::show_module(const uinode2 &node, example::Graph<Node> &audio_g
     ImNodes::EndNodeTitleBar();
     
 //    ImNodes::BeginInputAttribute(node.ui.test_external.midiin_data);
-    ImNodes::BeginInputAttribute(node.ui[0]);
-    ImGui::Text("midi input");
-    ImNodes::EndInputAttribute();
+//    ImNodes::BeginInputAttribute(GET_UI(PARAM::midi_in));
+//    ImGui::Text("midi input");
+//    ImNodes::EndInputAttribute();
 
     ImNodes::BeginOutputAttribute(node.id);
     ImGui::Text("output");
@@ -142,7 +148,7 @@ void test_module::show_module(const uinode2 &node, example::Graph<Node> &audio_g
     static const char *current_outputDeviceName = 0;
 
 //    float *freq_num = (float *)audio_graph_.node(node.ui.test_external.freq).value;
-    int *sc_type_num = (int *)audio_graph_.node(node.ui[3]).value;
+    int *sc_type_num = (int *)audio_graph_.node(GET_UI(PARAM::osc_type)).value;
     test_module::combo_box("osc type", names, sc_type_num);
     // print("yooo", *sc_type_num);
 

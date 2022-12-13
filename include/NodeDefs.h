@@ -16,6 +16,18 @@ enum class NodeType
 
 //int buffer_size = 256;
 
+struct Node2
+{
+    std::string type;
+    void *value;
+
+    explicit Node2(const std::string t) : type(t) {
+//        value = new float[buffer_size]();
+    }
+
+    Node2(const std::string t, void* v) : type(t), value(v) {}
+};
+
 struct Node
 {
     NodeType type;
@@ -39,7 +51,7 @@ struct Node
 
 struct uinode2
 {
-    NodeType type;
+    std::string type;
     int id;
     std::vector<int> ui;
 };

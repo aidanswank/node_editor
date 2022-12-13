@@ -3,7 +3,35 @@
 
 enum PARAM { osc, freq, osc_type, output, kParams };
 
-void test_module::init_module(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_, std::vector<std::string> &node_types)
+//more
+void osc_combo_box(const char *combo_box_name, std::vector<std::string> &item_names, int *select_choice)
+{
+    const char *current_name = item_names[*select_choice].c_str();
+
+    if (ImGui::BeginCombo(combo_box_name, current_name)) // The second parameter is the label previewed before opening the combo.
+    {
+        for (int n = 0; n < item_names.size(); n++)
+        {
+            bool is_selected = (current_name == item_names[n].c_str()); // You can store your selection however you want, outside or inside your objects
+            if (ImGui::Selectable(item_names[n].c_str(), is_selected))
+            {
+                current_name = item_names[n].c_str();
+                print(current_name, "selected", n);
+                *select_choice = n;
+                // audioInterface->turnDeviceOn( audioInterface->openDevice(n,0) );
+            }
+            // if (is_selected)
+            // {
+            //     print("is selected");
+            //     // ImGui::SetItemDefaultFocus(); // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
+            // }
+        }
+        ImGui::EndCombo();
+    }
+};
+
+
+void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_, std::string module_name)
 {
     print("test module init");
 
@@ -24,7 +52,7 @@ void test_module::init_module(ImVec2 click_pos, example::Graph<Node2> &audio_gra
 //    const Node midiin_data_node(NodeType::value, midiin_userdata_ptr);
 
     uinode2 ui_node;
-    ui_node.type = "osc";
+    ui_node.type = module_name;
     ui_node.id = audio_graph_.insert_node( Node2( ui_node.type ) );
 //    ui_node.ui.push_back( audio_graph_.insert_node( midiin_data_node ) );
     ui_node.ui.push_back( audio_graph_.insert_node( osc_node ) );
@@ -63,7 +91,7 @@ void test_module::init_module(ImVec2 click_pos, example::Graph<Node2> &audio_gra
     ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
 };
 
-void test_module::process_module(std::stack<void *> &value_stack)
+void osc_module_process(std::stack<void *> &value_stack)
 {
     // print("sine");
     
@@ -122,7 +150,7 @@ void test_module::process_module(std::stack<void *> &value_stack)
 };
 
 #define GET_UI(x) node.ui[x]
-void test_module::show_module(const uinode2 &node, example::Graph<Node2> &audio_graph_)
+void osc_module_show(const uinode2 &node, example::Graph<Node2> &audio_graph_)
 {
     ImNodes::BeginNode(node.id);
 
@@ -149,7 +177,7 @@ void test_module::show_module(const uinode2 &node, example::Graph<Node2> &audio_
 
 //    float *freq_num = (float *)audio_graph_.node(node.ui.test_external.freq).value;
     int *sc_type_num = (int *)audio_graph_.node(GET_UI(PARAM::osc_type)).value;
-    test_module::combo_box("osc type", names, sc_type_num);
+    osc_combo_box("osc type", names, sc_type_num);
     // print("yooo", *sc_type_num);
 
 //    ImGui::DragFloat("freq", &*freq_num, 2.0f, 1.f, 1000.0f);

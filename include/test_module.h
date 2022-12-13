@@ -20,39 +20,9 @@
 
 double midi2Freq(int n);
 
-class test_module
-{
-public:
-//    template <typename T>
-    static void init_module(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_, std::vector<std::string> &node_types);
-    static void process_module(std::stack<void *> &value_stack);
-//    template <typename T>
-    static void show_module(const uinode2 &node, example::Graph<Node2> &audio_graph_);
+void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_, std::string module_name);
+void osc_module_process(std::stack<void *> &value_stack);
+void osc_module_show(const uinode2 &node, example::Graph<Node2> &audio_graph_);
     
-    //more
-    static void combo_box(const char *combo_box_name, std::vector<std::string> &item_names, int *select_choice)
-    {
-        const char *current_name = item_names[*select_choice].c_str();
-
-        if (ImGui::BeginCombo(combo_box_name, current_name)) // The second parameter is the label previewed before opening the combo.
-        {
-            for (int n = 0; n < item_names.size(); n++)
-            {
-                bool is_selected = (current_name == item_names[n].c_str()); // You can store your selection however you want, outside or inside your objects
-                if (ImGui::Selectable(item_names[n].c_str(), is_selected))
-                {
-                    current_name = item_names[n].c_str();
-                    print(current_name, "selected", n);
-                    *select_choice = n;
-                    // audioInterface->turnDeviceOn( audioInterface->openDevice(n,0) );
-                }
-                // if (is_selected)
-                // {
-                //     print("is selected");
-                //     // ImGui::SetItemDefaultFocus(); // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
-                // }
-            }
-            ImGui::EndCombo();
-        }
-    };
-};
+//more
+void osc_combo_box(const char *combo_box_name, std::vector<std::string> &item_names, int *select_choice);

@@ -19,7 +19,7 @@ float* audio_evaluate(const Graph<Node2>& graph, const int root_node)
 
         if(node.type=="osc")
         {
-            test_module::process_module(value_stack);
+            osc_module_process(value_stack);
         }
         if(node.type=="value")
         {

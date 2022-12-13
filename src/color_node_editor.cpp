@@ -181,18 +181,24 @@ public:
                 const ImVec2 click_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
 
                 
-                for(int i = 0; i < node_types.size(); i++)
-                {
-                    if (ImGui::MenuItem(node_types[i].c_str()))
-                    {
+      
+        
 //                        midiin_module_init(click_pos, graph, ui_nodes);
+                for(int i = 0; i < module_funcs.size(); i++)
+                {
+                    if(module_funcs[i].type!="output") // skip
+                    {
+                        if (ImGui::MenuItem(module_funcs[i].type.c_str()))
+                        {
+                            module_funcs[i].init(click_pos, graph2, ui_nodes2, module_funcs[i].type);
+                        }
                     }
                 }
 
-                if (ImGui::MenuItem("TEST_EXTERNAL"))
-                {
-                    osc_module_init(click_pos, graph2, ui_nodes2, "osc");
-                }
+//                if (ImGui::MenuItem("TEST_EXTERNAL"))
+//                {
+//                    osc_module_init(click_pos, graph2, ui_nodes2, "osc");
+//                }
 
                 if (ImGui::MenuItem("AudioOutput") && audio_root_node_id_ == -1)
                 {
@@ -381,7 +387,7 @@ void NodeEditorInitialize()
     color_editor.node_types.push_back(module1_name);
     color_editor.module_funcs.push_back(module1);
     
-    std::string module2_name = "osc";
+    std::string module2_name = "Oscillator";
     node_module_funcs module2;
     module2.type = module2_name;
     module2.init = osc_module_init;

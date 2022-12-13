@@ -33,29 +33,15 @@ float* audio_evaluate(const Graph<Node2>& graph, const int root_node)
                 // print("node val",node.value);
             }
         }
-        if(node.type=="output")
-        {
-            output_module_process(res, value_stack);
-        }
     }
 
     // The final output node isn't evaluated in the loop -- instead we just pop
     // the three values which should be in the stack.
-    // assert(value_stack.size() == 1ull);
+     assert(value_stack.size() == 2ull); //<-- NUM PARAMS TO POP
+//     print("stack sz", value_stack.size());
 
-    // print("stack sz", value_stack.size());
+     output_module_process(res, value_stack);
 
-    // float* res = new float[buffer_size]();
-    // if(value_stack.size() == 1ull)
-    // {
-    //     // print("yo");
-    //     res = value_stack.top();
-    //     // for(int i = 0; i < buffer_size; i++)
-    //     // {
-    //     //     print(res[i]);
-    //     // }
-    //     value_stack.pop();
-    // }
 
     return res;
 }

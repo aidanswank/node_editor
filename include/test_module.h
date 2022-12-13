@@ -8,6 +8,7 @@
 #include "graph.h"
 #include <vector>
 #include "NodeDefs.h"
+#include "magic_enum.hpp"
 
 // // ids of nodes that point to data
 // struct TestModule
@@ -17,6 +18,16 @@
 //     int osc_output;
 //     int freq;
 // };
+
+struct osc_module
+{
+    Oscillator osc_ptr;
+    float freq_num;
+    int osc_type;
+    float osc_out;
+};
+
+enum PARAM { osc_ptr, freq, osc_type, osc_out, kParams };
 
 double midi2Freq(int n);
 

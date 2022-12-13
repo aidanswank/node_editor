@@ -1,8 +1,6 @@
 #include "test_module.h"
 //#include "midi_in_module.h"
 
-enum PARAM { osc, freq, osc_type, output, kParams };
-
 //more
 void osc_combo_box(const char *combo_box_name, std::vector<std::string> &item_names, int *select_choice)
 {
@@ -31,60 +29,31 @@ void osc_combo_box(const char *combo_box_name, std::vector<std::string> &item_na
 };
 
 
+#define a(x) x##_node
+
+#define SKETCHY_CREATE_NODE(node_name, var_name) const Node2 node_name##_node("value", (void*)var_name); ui_node.ui.push_back( audio_graph_.insert_node( a(node_name) ) );
+
 void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_, std::string module_name)
 {
-    print("test module init");
-
-    float *osc_output = new float[256]();
-
-    Oscillator *osc = new Oscillator();
-    osc->setMode(Oscillator::OSCILLATOR_MODE_SINE);
-    osc->setSampleRate(44100);
-
-    float *freq_num = new float(220.0);
-
-    const Node2 osc_node("value", (void *)osc);
-    const Node2 freq_node("value", (void *)freq_num);
-    const Node2 osc_type_node("value", (void *)new int(0)); // type 0 sine
-    const Node2 osc_out_node("value", (void *)osc_output);
+    print("test module init", (std::string)magic_enum::enum_name(PARAM::osc_ptr));
     
-//    UserData* midiin_userdata_ptr = new UserData;
-//    const Node midiin_data_node(NodeType::value, midiin_userdata_ptr);
+    Oscillator *osc_ptr = new Oscillator();
+    osc_ptr->setMode(Oscillator::OSCILLATOR_MODE_SINE);
+    osc_ptr->setSampleRate(44100);
 
     uinode2 ui_node;
     ui_node.type = module_name;
     ui_node.id = audio_graph_.insert_node( Node2( ui_node.type ) );
-//    ui_node.ui.push_back( audio_graph_.insert_node( midiin_data_node ) );
-    ui_node.ui.push_back( audio_graph_.insert_node( osc_node ) );
-    ui_node.ui.push_back( audio_graph_.insert_node( freq_node ) );
-    ui_node.ui.push_back( audio_graph_.insert_node( osc_type_node ) );
-    ui_node.ui.push_back( audio_graph_.insert_node( osc_out_node ) );
     
+    SKETCHY_CREATE_NODE(osc_ptr, osc_ptr);
+    SKETCHY_CREATE_NODE(freq, new float(220.0));
+    SKETCHY_CREATE_NODE(osc_type, new int(0));
+    SKETCHY_CREATE_NODE(osc_out, new float[256]());
+
     for(int i = 0; i < PARAM::kParams; i++)
     {
         audio_graph_.insert_edge(ui_node.id, ui_node.ui[i]);
     }
-//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[0]);
-//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[1]);
-//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[2]);
-//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[3]);
-//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui[4]);
-
-    
-//    UiNode audio_ui_node;
-//    audio_ui_node.type                          = NodeType::test_external;
-//    audio_ui_node.id                            = audio_graph_.insert_node( Node( audio_ui_node.type ) );
-//    audio_ui_node.ui.test_external.midiin_data  = audio_graph_.insert_node( midiin_data_node );
-//    audio_ui_node.ui.test_external.osc          = audio_graph_.insert_node( osc_node );
-//    audio_ui_node.ui.test_external.freq         = audio_graph_.insert_node( freq_node );
-//    audio_ui_node.ui.test_external.osc_type     = audio_graph_.insert_node( osc_type_node );
-//    audio_ui_node.ui.test_external.osc_output   = audio_graph_.insert_node( osc_out_node );
-//
-//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.test_external.midiin_data );
-//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.test_external.osc);
-//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.test_external.freq);
-//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.test_external.osc_type);
-//    audio_graph_.insert_edge(audio_ui_node.id, audio_ui_node.ui.test_external.osc_output);
 
     ui_nodes_.push_back(ui_node);
 
@@ -149,7 +118,8 @@ void osc_module_process(std::stack<void *> &value_stack)
     
 };
 
-#define GET_UI(x) node.ui[x]
+#define SKETCHY_GET(x) audio_graph_.node(node.ui[x]).value
+
 void osc_module_show(const uinode2 &node, example::Graph<Node2> &audio_graph_)
 {
     ImNodes::BeginNode(node.id);
@@ -176,8 +146,7 @@ void osc_module_show(const uinode2 &node, example::Graph<Node2> &audio_graph_)
     static const char *current_outputDeviceName = 0;
 
 //    float *freq_num = (float *)audio_graph_.node(node.ui.test_external.freq).value;
-    int *sc_type_num = (int *)audio_graph_.node(GET_UI(PARAM::osc_type)).value;
-    osc_combo_box("osc type", names, sc_type_num);
+    int *sc_type_num = (int *)SKETCHY_GET(PARAM::osc_type);
     // print("yooo", *sc_type_num);
 
 //    ImGui::DragFloat("freq", &*freq_num, 2.0f, 1.f, 1000.0f);

@@ -10,6 +10,7 @@
           "features": [ "sdl2-binding", "opengl3-binding", "docking-experimental" ]
         },
         "rtmidi",
-        "concurrentqueue"
+        "concurrentqueue",
+	"magic-enum"
     ]
 }

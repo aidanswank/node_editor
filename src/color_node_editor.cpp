@@ -22,7 +22,7 @@ int buffer_size = 256;
 
 struct node_module_funcs
 {
-    std::string node_type;
+    std::string type;
     using process_func = void(*)(std::stack<void *> &);
     using init_func = void(*)(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_, std::string module_name);
     using show_func = void(*)(const uinode2 &, example::Graph<Node2> &);
@@ -208,7 +208,7 @@ public:
         {
             for(int i = 0; i < module_funcs.size(); i++)
             {
-                if(module_funcs[i].node_type==node.type)
+                if(module_funcs[i].type==node.type)
                 {
                     module_funcs[i].show(node, graph2);
                 }
@@ -374,7 +374,7 @@ void NodeEditorInitialize()
     
     std::string module1_name = "output";
     node_module_funcs module1;
-    module1.node_type = module1_name;
+    module1.type = module1_name;
 //    module1.init = output_module_init; // DIFF FUNCTION BECAUSE ROOT_NODE_ID !!! BUT SHOW FUNC WORKS
     module1.show = output_module_show;
 //    module1.process = output_module_process; // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -383,7 +383,7 @@ void NodeEditorInitialize()
     
     std::string module2_name = "osc";
     node_module_funcs module2;
-    module2.node_type = module2_name;
+    module2.type = module2_name;
     module2.init = osc_module_init;
     module2.show = osc_module_show;
     module2.process = osc_module_process;
@@ -412,7 +412,7 @@ float* NodeEditorAudioCallback()
     // print("audio_root_node_id",color_editor.audio_root_node_id_);
     if(color_editor.audio_root_node_id_ != -1)
     {
-        audio_output = audio_evaluate(color_editor.graph2, color_editor.audio_root_node_id_);
+        audio_output = audio_evaluate(color_editor.graph2, color_editor.audio_root_node_id_, color_editor.module_funcs);
     }
     return audio_output;
 }

@@ -213,15 +213,6 @@ public:
                     module_funcs[i].show(node, graph2);
                 }
             }
-
-//            if(node.type=="osc")
-//            {
-//                osc_module_show(node, graph2);
-//            }
-            if(node.type=="output")
-            {
-                output_module_show(node, graph2);
-            }
         }
         
         for (const auto& edge : graph2.edges())
@@ -381,14 +372,23 @@ void NodeEditorInitialize()
 //    color_editor.node_types.push_back("output");
 //    color_editor.node_types.push_back("osc");
     
-    std::string module1_name = "osc";
+    std::string module1_name = "output";
     node_module_funcs module1;
     module1.node_type = module1_name;
-    module1.init = osc_module_init;
-    module1.show = osc_module_show;
-    module1.process = osc_module_process;
+//    module1.init = output_module_init; // DIFF FUNCTION BECAUSE ROOT_NODE_ID !!! BUT SHOW FUNC WORKS
+    module1.show = output_module_show;
+//    module1.process = output_module_process; // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     color_editor.node_types.push_back(module1_name);
     color_editor.module_funcs.push_back(module1);
+    
+    std::string module2_name = "osc";
+    node_module_funcs module2;
+    module2.node_type = module2_name;
+    module2.init = osc_module_init;
+    module2.show = osc_module_show;
+    module2.process = osc_module_process;
+    color_editor.node_types.push_back(module2_name);
+    color_editor.module_funcs.push_back(module2);
 
     // Vector to store the pointers to the functions
 //    std::vector<ProcessFunc> funcs;

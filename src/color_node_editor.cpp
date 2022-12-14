@@ -35,6 +35,7 @@ struct node_module_funcs
 #include "test_module.h"
 #include "midi_in_module.h"
 #include "output_module.h"
+#include "xfader_module.h"
 
 
 namespace example
@@ -52,32 +53,6 @@ static float current_time_seconds = 0.f;
 static bool  emulate_three_button_mouse = false;
 
 #include "audio_evaluate.h"
-
-void combo_box(const char *combo_box_name, std::vector<std::string> &item_names, int* select_choice)
-{
-    const char * current_name = item_names[*select_choice].c_str();
-
-    if (ImGui::BeginCombo(combo_box_name, current_name)) // The second parameter is the label previewed before opening the combo.
-    {
-        for (int n = 0; n < item_names.size(); n++)
-        {
-            bool is_selected = (current_name == item_names[n].c_str()); // You can store your selection however you want, outside or inside your objects
-            if (ImGui::Selectable(item_names[n].c_str(), is_selected))
-            {
-                current_name = item_names[n].c_str();
-                print(current_name,"selected",n);
-                *select_choice = n;
-                // audioInterface->turnDeviceOn( audioInterface->openDevice(n,0) );
-            }
-            // if (is_selected)
-            // {
-            //     print("is selected");
-            //     // ImGui::SetItemDefaultFocus(); // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
-            // }
-        }
-        ImGui::EndCombo();
-    }
-};
 
 class ColorNodeEditor
 {
@@ -395,6 +370,15 @@ void NodeEditorInitialize()
     module2.process = osc_module_process;
     color_editor.node_types.push_back(module2_name);
     color_editor.module_funcs.push_back(module2);
+    
+    std::string module3_name = "Xfader";
+    node_module_funcs module3;
+    module3.type = module3_name;
+    module3.init = xfader_module_init;
+    module3.show = xfader_module_show;
+    module3.process = xfader_module_process;
+    color_editor.node_types.push_back(module3_name);
+    color_editor.module_funcs.push_back(module3);
 
     // Vector to store the pointers to the functions
 //    std::vector<ProcessFunc> funcs;

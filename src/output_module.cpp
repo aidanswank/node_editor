@@ -5,7 +5,7 @@ void output_module_init(int &audio_root_node_id_, ImVec2 click_pos, example::Gra
     print("audio ouput node");
     float* arr = new float[256]();
     const Node2 value("value", arr);
-    float* gain_ptr = new float(0.123);
+    float* gain_ptr = new float(0.01);
     const Node2 gain("value", gain_ptr);
     const Node2 out("output");
 

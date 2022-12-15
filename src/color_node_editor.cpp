@@ -285,22 +285,27 @@ public:
                 ImNodes::GetSelectedNodes(selected_nodes.data());
                 for (const int node_id : selected_nodes)
                 {
-                    graph.erase_node(node_id);
+                    graph2.erase_node(node_id);
                     auto iter = std::find_if(
-                        ui_nodes.begin(), ui_nodes.end(), [node_id](const UiNode& node) -> bool {
+                        ui_nodes2.begin(), ui_nodes2.end(), [node_id](const uinode2& node) -> bool {
                             return node.id == node_id;
                         });
                     // Erase any additional internal nodes
-                    switch (iter->type)
+//                    switch (iter->type)
+//                    {
+//                    case NodeType::output:
+//                        graph.erase_node(iter->ui.output.input);
+//                        audio_root_node_id_ = -1;
+//                        break;
+//                    default:
+//                        break;
+//                    }
+                    if(iter->type=="output")
                     {
-                    case NodeType::output:
-                        graph.erase_node(iter->ui.output.input);
+                        graph2.erase_node(iter->ui[0]); // 0 is INPUT 1 is GAIN todo change
                         audio_root_node_id_ = -1;
-                        break;
-                    default:
-                        break;
                     }
-                    ui_nodes.erase(iter);
+                    ui_nodes2.erase(iter);
                 }
             }
         }

@@ -28,7 +28,9 @@ struct xfader_module {
     float* new_output;
 };
 
-enum XFADER_PARAM { input_a, input_b, mix_amount, new_output, kParamsXfader };
+//enum XFADER_PARAM { input_a, input_b, mix_amount, new_output, kParamsXfader };
+
+enum XFADER_PARAM { input_a, input_b, xfmod, kParamsXfader };
 //
 //enum XFADER_PARAM { modstruct, kParamsXfader };
 

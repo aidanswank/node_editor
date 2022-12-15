@@ -12,14 +12,28 @@ void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vec
     float* input_b_ptr = new float[256]();
     float* mix_amount_ptr = new float(0.5);
     float* new_output_ptr = new float[256]();
+    
+    xfader_module *xfmod = new xfader_module { input_a_ptr, input_b_ptr, 0, 0, mix_amount_ptr, new_output_ptr };
 
 //    SKETCHY_CREATE_NODE(input_a, input_a_ptr);
     const Node2 input_a_node("value", (void*)input_a_ptr);
-    ui_node.ui.push_back( graph.insert_node( input_a_node ) );
+    int ui_id = graph.insert_node( input_a_node );
+    xfmod->input_a_attr = ui_id;
+    ui_node.ui.push_back( ui_id );
     
-    SKETCHY_CREATE_NODE(input_b, input_b_ptr);
-    SKETCHY_CREATE_NODE(mix_amount, mix_amount_ptr);
-    SKETCHY_CREATE_NODE(new_output, new_output_ptr);
+    const Node2 input_b_node("value", (void*)input_b_ptr);
+    ui_id = graph.insert_node( input_b_node );
+    xfmod->input_b_attr = ui_id;
+    ui_node.ui.push_back( ui_id );
+    
+    xfmod->mixer_amount = mix_amount_ptr;
+    xfmod->new_output = new_output_ptr;
+
+//    SKETCHY_CREATE_NODE(mix_amount, mix_amount_ptr);
+//    SKETCHY_CREATE_NODE(new_output, new_output_ptr);
+    
+    const Node2 xfmod_node("value", (void*)xfmod);
+    ui_node.ui.push_back( graph.insert_node( xfmod_node ) );
 
     for(int i = 0; i < XFADER_PARAM::kParamsXfader; i++)
     {
@@ -36,12 +50,15 @@ void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vec
 void xfader_module_process(std::stack<void *> &value_stack)
 {
 
-    float *new_output = (float*)value_stack.top();
+//    float *new_output = (float*)value_stack.top();
+//    value_stack.pop();
+//
+//    float *slider_ptr = (float*)value_stack.top();
+//    value_stack.pop();
+    
+    xfader_module *xfmod = (xfader_module*)value_stack.top();
     value_stack.pop();
     
-    float *slider_ptr = (float*)value_stack.top();
-    value_stack.pop();
-
     float* input_a = (float*)value_stack.top();
     value_stack.pop();
 
@@ -49,8 +66,8 @@ void xfader_module_process(std::stack<void *> &value_stack)
     value_stack.pop();
 
 //    print("size",value_stack.size(),"a",*input_a,"b",*input_b,"slide",*slider_ptr);
-
-    float amount = *slider_ptr;
+    float *new_output = xfmod->new_output;
+    float amount = *xfmod->mixer_amount;
 
     for(int i = 0; i < 256; i++)
     {
@@ -63,6 +80,8 @@ void xfader_module_process(std::stack<void *> &value_stack)
 
 void xfader_module_show(const uinode2 &node, example::Graph<Node2> &graph)
 {
+    xfader_module* xfmod = (xfader_module*)graph.node(node.ui[XFADER_PARAM::xfmod]).value;
+    
     const float node_width = 100.0f;
     ImNodes::BeginNode(node.id);
 
@@ -77,7 +96,7 @@ void xfader_module_show(const uinode2 &node, example::Graph<Node2> &graph)
 // ImGui::PlotLines("Curve", arr, IM_ARRAYSIZE(arr));
 
     {
-        ImNodes::BeginInputAttribute(node.ui[XFADER_PARAM::input_a]);
+        ImNodes::BeginInputAttribute(xfmod->input_a_attr);
 //                    const float label_width = ImGui::CalcTextSize("a").x;
         ImGui::TextUnformatted("a");
         ImNodes::EndInputAttribute();
@@ -85,14 +104,14 @@ void xfader_module_show(const uinode2 &node, example::Graph<Node2> &graph)
 
 
     {
-        ImNodes::BeginInputAttribute(node.ui[XFADER_PARAM::input_b]);
+        ImNodes::BeginInputAttribute(xfmod->input_b_attr);
 //                    const float label_width = ImGui::CalcTextSize("b").x;
         ImGui::TextUnformatted("b");
         ImNodes::EndInputAttribute();
     }
 
     ImGui::PushItemWidth(node_width);
-    float* amount_ptr = (float*)graph.node(node.ui[XFADER_PARAM::mix_amount]).value;
+    float* amount_ptr = xfmod->mixer_amount;
     ImGui::DragFloat("##hidelabel", &*amount_ptr, 0.01f, 0.f, 1.0f);
     ImGui::PushItemWidth(node_width);
 

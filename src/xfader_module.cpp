@@ -1,15 +1,9 @@
 #include "xfader_module.h"
 
-#define SKETCHY_CREATE_NODE(node_name, var_name) const Node2 node_name##_node("value", (void*)var_name); ui_node.ui.push_back( graph.insert_node( node_name##_node ) );
-
 int push_value_node(void *input_ptr, uinode2 &ui_node, example::Graph<Node2> &graph)
 {
-//    const Node2 input_node("value", (void*)input_ptr);
-//    int ui_id = graph.insert_node( input_node );
-    
     const Node2 input_node("value", (void*)input_ptr);
     int ui_id = graph.insert_node( input_node );
-//    int ui_id = insert_value_node(graph, input_ptr);
     ui_node.ui.push_back( ui_id );
     
     return ui_id;
@@ -74,22 +68,16 @@ void xfader_module_process(std::stack<void *> &value_stack)
     value_stack.push(new_output);
 };
 
+#define DEBUG_NODE_TITLE_BAR(name) ImNodes::BeginNodeTitleBar(); char num_str[16]; sprintf(num_str, "%s (%d,%lu)", name.c_str(), node.id, node.ui.size()); ImGui::TextUnformatted(num_str); ImNodes::EndNodeTitleBar();
+
 void xfader_module_show(const uinode2 &node, example::Graph<Node2> &graph)
 {
-    xfader_module* xfmod = (xfader_module*)graph.node(node.ui[0]).value;
+    xfader_module* xfmod = (xfader_module*)graph.node(node.ui[0]).value; // store struct in index zero
     
     const float node_width = 100.0f;
     ImNodes::BeginNode(node.id);
 
-    ImNodes::BeginNodeTitleBar();
-    char num_str[16];
-    char name[] = "xfader";
-    sprintf(num_str, "%s (%d)", name, node.id);
-    ImGui::TextUnformatted(num_str);
-    ImNodes::EndNodeTitleBar();
-
-// static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
-// ImGui::PlotLines("Curve", arr, IM_ARRAYSIZE(arr));
+    DEBUG_NODE_TITLE_BAR(node.type);
 
     {
         ImNodes::BeginInputAttribute(xfmod->input_a_attr);
@@ -107,7 +95,6 @@ void xfader_module_show(const uinode2 &node, example::Graph<Node2> &graph)
     }
 
     ImGui::PushItemWidth(node_width);
-//    float amount = xfmod->mixer_amount;
     ImGui::DragFloat("##hidelabel", &xfmod->mixer_amount, 0.01f, 0.f, 1.0f);
     ImGui::PushItemWidth(node_width);
 

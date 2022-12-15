@@ -240,7 +240,8 @@ void CustomImGui::Update()
 
     example::NodeEditorShow();
 
-     ImGui::ShowDemoWindow();
+//     ImGui::ShowDemoWindow()
+    ;
     if (audio_settings_open)
     {
         AudioSettings(&audio_settings_open);

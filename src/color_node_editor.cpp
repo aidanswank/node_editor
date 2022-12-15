@@ -271,7 +271,7 @@ public:
                 ImNodes::GetSelectedLinks(selected_links.data());
                 for (const int edge_id : selected_links)
                 {
-                    graph.erase_edge(edge_id);
+                    graph2.erase_edge(edge_id);
                 }
             }
         }
@@ -303,7 +303,14 @@ public:
                     if(iter->type=="output")
                     {
                         graph2.erase_node(iter->ui[0]); // 0 is INPUT 1 is GAIN todo change
+                        graph2.erase_node(iter->ui[1]); // 0 is INPUT 1 is GAIN todo change
                         audio_root_node_id_ = -1;
+                    } else {
+//                        iter->ui.size()
+                        for(int i = 0; i < iter->ui.size(); i++)
+                        {
+                            graph2.erase_node(iter->ui[i]);
+                        }
                     }
                     ui_nodes2.erase(iter);
                 }

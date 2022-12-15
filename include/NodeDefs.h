@@ -55,7 +55,7 @@ struct uinode2
     std::string type;
     int id;
     std::vector<int> ui;
-    std::map<std::string, int> ui2;
+//    std::map<std::string, int> ui2;
 };
 
 struct UiNode

@@ -2,6 +2,15 @@
 
 #define SKETCHY_CREATE_NODE(node_name, var_name) const Node2 node_name##_node("value", (void*)var_name); ui_node.ui.push_back( graph.insert_node( node_name##_node ) );
 
+int input_init(void *input_ptr, uinode2 &ui_node, example::Graph<Node2> &graph)
+{
+    const Node2 input_node("value", (void*)input_ptr);
+    int ui_id = graph.insert_node( input_node );
+    ui_node.ui.push_back( ui_id );
+    
+    return ui_id;
+}
+
 void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_, std::string module_name)
 {
     uinode2 ui_node;
@@ -10,23 +19,15 @@ void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vec
     
     float* input_a_ptr = new float[256]();
     float* input_b_ptr = new float[256]();
-    float* mix_amount_ptr = new float(0.5);
+    float mix_amount = 0.5;
     float* new_output_ptr = new float[256]();
     
-    xfader_module *xfmod = new xfader_module { input_a_ptr, input_b_ptr, 0, 0, mix_amount_ptr, new_output_ptr };
-
-//    SKETCHY_CREATE_NODE(input_a, input_a_ptr);
-    const Node2 input_a_node("value", (void*)input_a_ptr);
-    int ui_id = graph.insert_node( input_a_node );
-    xfmod->input_a_attr = ui_id;
-    ui_node.ui.push_back( ui_id );
+    xfader_module *xfmod = new xfader_module { input_a_ptr, input_b_ptr, 0, 0, mix_amount, new_output_ptr };
     
-    const Node2 input_b_node("value", (void*)input_b_ptr);
-    ui_id = graph.insert_node( input_b_node );
-    xfmod->input_b_attr = ui_id;
-    ui_node.ui.push_back( ui_id );
+    xfmod->input_a_attr = input_init(input_a_ptr,ui_node,graph);
+    xfmod->input_b_attr = input_init(input_b_ptr,ui_node,graph);
     
-    xfmod->mixer_amount = mix_amount_ptr;
+    xfmod->mixer_amount = mix_amount;
     xfmod->new_output = new_output_ptr;
 
 //    SKETCHY_CREATE_NODE(mix_amount, mix_amount_ptr);
@@ -35,7 +36,7 @@ void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vec
     const Node2 xfmod_node("value", (void*)xfmod);
     ui_node.ui.push_back( graph.insert_node( xfmod_node ) );
 
-    for(int i = 0; i < XFADER_PARAM::kParamsXfader; i++)
+    for(int i = 0; i < XFADER_PARAM::XFADER_MAX; i++)
     {
         graph.insert_edge(ui_node.id, ui_node.ui[i]);
     }
@@ -56,18 +57,19 @@ void xfader_module_process(std::stack<void *> &value_stack)
 //    float *slider_ptr = (float*)value_stack.top();
 //    value_stack.pop();
     
+    // pop off other data inside module
     xfader_module *xfmod = (xfader_module*)value_stack.top();
     value_stack.pop();
     
+    // pop off audio input data from other modules
     float* input_a = (float*)value_stack.top();
     value_stack.pop();
-
     float* input_b = (float*)value_stack.top();
     value_stack.pop();
 
 //    print("size",value_stack.size(),"a",*input_a,"b",*input_b,"slide",*slider_ptr);
     float *new_output = xfmod->new_output;
-    float amount = *xfmod->mixer_amount;
+    float amount = xfmod->mixer_amount;
 
     for(int i = 0; i < 256; i++)
     {
@@ -111,8 +113,8 @@ void xfader_module_show(const uinode2 &node, example::Graph<Node2> &graph)
     }
 
     ImGui::PushItemWidth(node_width);
-    float* amount_ptr = xfmod->mixer_amount;
-    ImGui::DragFloat("##hidelabel", &*amount_ptr, 0.01f, 0.f, 1.0f);
+//    float amount = xfmod->mixer_amount;
+    ImGui::DragFloat("##hidelabel", &xfmod->mixer_amount, 0.01f, 0.f, 1.0f);
     ImGui::PushItemWidth(node_width);
 
     ImNodes::BeginOutputAttribute(node.id);

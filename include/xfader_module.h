@@ -24,13 +24,13 @@ struct xfader_module {
     int input_b_attr;
     
     //other data
-    float* mixer_amount;
+    float mixer_amount;
     float* new_output;
 };
 
 //enum XFADER_PARAM { input_a, input_b, mix_amount, new_output, kParamsXfader };
 
-enum XFADER_PARAM { input_a, input_b, xfmod, kParamsXfader };
+enum XFADER_PARAM { input_a, input_b, xfmod, XFADER_MAX };
 //
 //enum XFADER_PARAM { modstruct, kParamsXfader };
 

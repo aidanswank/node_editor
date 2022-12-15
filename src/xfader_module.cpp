@@ -17,8 +17,10 @@ void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vec
     ui_node.type = module_name;
     ui_node.id = graph.insert_node( Node2( ui_node.type ) );
     
+    //inputs
     float* input_a_ptr = new float[256]();
     float* input_b_ptr = new float[256]();
+    //other
     float mix_amount = 0.5;
     float* new_output_ptr = new float[256]();
     
@@ -26,7 +28,11 @@ void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vec
     
     xfmod->input_a_attr = input_init(input_a_ptr,ui_node,graph);
     xfmod->input_b_attr = input_init(input_b_ptr,ui_node,graph);
-    
+//    const Node2 input_node("value", (void*)input_b_ptr);
+//    int ui_id = graph.insert_node( input_node );
+//    ui_node.ui2.insert({"input_a",ui_id});
+//    ui_node.ui.push_back( ui_id );
+//
     xfmod->mixer_amount = mix_amount;
     xfmod->new_output = new_output_ptr;
 
@@ -36,7 +42,7 @@ void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vec
     const Node2 xfmod_node("value", (void*)xfmod);
     ui_node.ui.push_back( graph.insert_node( xfmod_node ) );
 
-    for(int i = 0; i < XFADER_PARAM::XFADER_MAX; i++)
+    for(int i = 0; i < ui_node.ui.size(); i++)
     {
         graph.insert_edge(ui_node.id, ui_node.ui[i]);
     }

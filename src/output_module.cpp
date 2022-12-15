@@ -29,9 +29,10 @@ void output_module_init(int &audio_root_node_id_, ImVec2 click_pos, example::Gra
     ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
     audio_root_node_id_ = audio_ui_node.id;
 };
+
 void output_module_show(const uinode2 &node, example::Graph<Node2> &graph)
 {
-    const float node_width = 100.0f;
+    const float node_width = 50;
 
     ImNodes::BeginNode(node.id);
 
@@ -51,7 +52,9 @@ void output_module_show(const uinode2 &node, example::Graph<Node2> &graph)
     //     print("value!!",audio_graph_.node(node.ui.output.gain).value[0]);
     // // }
     float* fa_gain_stupid = (float*)graph.node(node.ui[1]).value;
-    ImGui::DragFloat("gain", &*fa_gain_stupid, 0.01f, 0.f, 1.0f);
+//    ImGui::DragFloat("gain", &*fa_gain_stupid, 0.01f, 0.f, 1.0f);
+    
+    MyKnob("gain", &*fa_gain_stupid, 0.0f, 1.0f);
 
 
     // float* float_arr = (float*)audio_graph_.node(node.ui.output.input).value;

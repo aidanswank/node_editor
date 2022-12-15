@@ -17,8 +17,13 @@
 //};
 
 struct xfader_module {
+    //inputs
     float* input_a;
     float* input_b;
+    int input_a_attr;
+    int input_b_attr;
+    
+    //other data
     float* mixer_amount;
     float* new_output;
 };

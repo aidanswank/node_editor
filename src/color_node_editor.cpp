@@ -24,7 +24,7 @@ struct node_module_funcs
 {
     std::string type;
     using process_func = void(*)(std::stack<void *> &);
-    using init_func = void(*)(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_, std::string module_name);
+    using init_func = void(*)(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_, std::string module_name);
     using show_func = void(*)(const uinode2 &, example::Graph<Node2> &);
     process_func process;
     init_func init;

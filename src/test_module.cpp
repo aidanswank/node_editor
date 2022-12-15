@@ -7,9 +7,9 @@
 
 #define a(x) x##_node
 
-#define SKETCHY_CREATE_NODE(node_name, var_name) const Node2 node_name##_node("value", (void*)var_name); ui_node.ui.push_back( audio_graph_.insert_node( a(node_name) ) );
+#define SKETCHY_CREATE_NODE(node_name, var_name) const Node2 node_name##_node("value", (void*)var_name); ui_node.ui.push_back( graph.insert_node( a(node_name) ) );
 
-void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_, std::string module_name)
+void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_, std::string module_name)
 {
     print("test module init", (std::string)magic_enum::enum_name(PARAM::osc_ptr));
     
@@ -19,7 +19,7 @@ void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std:
 
     uinode2 ui_node;
     ui_node.type = module_name;
-    ui_node.id = audio_graph_.insert_node( Node2( ui_node.type ) );
+    ui_node.id = graph.insert_node( Node2( ui_node.type ) );
     
     SKETCHY_CREATE_NODE(osc_ptr, osc_ptr);
     SKETCHY_CREATE_NODE(freq, new float(220.0));
@@ -28,7 +28,7 @@ void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std:
 
     for(int i = 0; i < PARAM::kParams; i++)
     {
-        audio_graph_.insert_edge(ui_node.id, ui_node.ui[i]);
+        graph.insert_edge(ui_node.id, ui_node.ui[i]);
     }
 
     ui_nodes_.push_back(ui_node);
@@ -94,9 +94,9 @@ void osc_module_process(std::stack<void *> &value_stack)
     
 };
 
-#define SKETCHY_GET(x) audio_graph_.node(node.ui[x]).value
+#define SKETCHY_GET(x) graph.node(node.ui[x]).value
 
-void osc_module_show(const uinode2 &node, example::Graph<Node2> &audio_graph_)
+void osc_module_show(const uinode2 &node, example::Graph<Node2> &graph)
 {
     ImNodes::BeginNode(node.id);
 

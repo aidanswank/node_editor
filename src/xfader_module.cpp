@@ -2,10 +2,21 @@
 
 #define SKETCHY_CREATE_NODE(node_name, var_name) const Node2 node_name##_node("value", (void*)var_name); ui_node.ui.push_back( graph.insert_node( node_name##_node ) );
 
+int insert_value_node(example::Graph<Node2> &graph, void* anyptr)
+{
+    const Node2 node("value", (void*)anyptr);
+    int ui_id = graph.insert_node( node );
+    return ui_id;
+}
+
 int input_init(void *input_ptr, uinode2 &ui_node, example::Graph<Node2> &graph)
 {
-    const Node2 input_node("value", (void*)input_ptr);
-    int ui_id = graph.insert_node( input_node );
+//    const Node2 input_node("value", (void*)input_ptr);
+//    int ui_id = graph.insert_node( input_node );
+    
+//    const Node2 input_node("value", (void*)input_ptr);
+//    int ui_id = graph.insert_node( input_node );
+    int ui_id = insert_value_node(graph, input_ptr);
     ui_node.ui.push_back( ui_id );
     
     return ui_id;
@@ -17,25 +28,24 @@ void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vec
     ui_node.type = module_name;
     ui_node.id = graph.insert_node( Node2( ui_node.type ) );
     
-    //inputs
-    float* input_a_ptr = new float[256]();
-    float* input_b_ptr = new float[256]();
-    //other
-    float mix_amount = 0.5;
-    float* new_output_ptr = new float[256]();
+    xfader_module *xfmod = new xfader_module
+    {
+        new float[256](),
+        new float[256](),
+        0,
+        0,
+        0.5,
+        new float[256]()
+    };
     
-    xfader_module *xfmod = new xfader_module { input_a_ptr, input_b_ptr, 0, 0, mix_amount, new_output_ptr };
+    xfmod->input_a_attr = input_init(xfmod->input_a, ui_node, graph);
+    xfmod->input_b_attr = input_init(xfmod->input_b, ui_node, graph);
     
-    xfmod->input_a_attr = input_init(input_a_ptr,ui_node,graph);
-    xfmod->input_b_attr = input_init(input_b_ptr,ui_node,graph);
 //    const Node2 input_node("value", (void*)input_b_ptr);
 //    int ui_id = graph.insert_node( input_node );
 //    ui_node.ui2.insert({"input_a",ui_id});
 //    ui_node.ui.push_back( ui_id );
-//
-    xfmod->mixer_amount = mix_amount;
-    xfmod->new_output = new_output_ptr;
-
+    
 //    SKETCHY_CREATE_NODE(mix_amount, mix_amount_ptr);
 //    SKETCHY_CREATE_NODE(new_output, new_output_ptr);
     
@@ -79,7 +89,6 @@ void xfader_module_process(std::stack<void *> &value_stack)
 
     for(int i = 0; i < 256; i++)
     {
-
         new_output[i]  = (input_a[i] * amount) + (input_b[i] * (1.0-amount));
     }
 

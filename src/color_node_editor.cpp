@@ -165,7 +165,10 @@ public:
                     {
                         if (ImGui::MenuItem(module_funcs[i].type.c_str()))
                         {
-                            module_funcs[i].init(click_pos, graph2, ui_nodes2, module_funcs[i].type);
+//                            for(int a = 0; a < 100; a++)
+//                            {
+                                module_funcs[i].init(click_pos, graph2, ui_nodes2, module_funcs[i].type);
+//                            }
                         }
                     }
                 }
@@ -302,15 +305,25 @@ public:
 //                    }
                     if(iter->type=="output")
                     {
-                        graph2.erase_node(iter->ui[0]); // 0 is INPUT 1 is GAIN todo change
-                        graph2.erase_node(iter->ui[1]); // 0 is INPUT 1 is GAIN todo change
+                        graph2.erase_node(iter->ui[0]); // 0 is INPUT
+                        graph2.erase_node(iter->ui[1]); // 1 is GAIN todo change
                         audio_root_node_id_ = -1;
-                    } else {
+                    } else { // other node
 //                        iter->ui.size()
+                        print("deleting",iter->type,"id",iter->id);
+                        
+//                        uinode2 hey = iter;
+                        void* mod_struct = (void*)graph2.node(iter->ui[STRUCT_IDX]).value; // store struct in index zero
+//                        Node2 n = graph2.node(iter->ui[0]);
+
                         for(int i = 0; i < iter->ui.size(); i++)
                         {
+                            print("erasing ui id",iter->ui[i]);
                             graph2.erase_node(iter->ui[i]);
                         }
+          
+                        free(mod_struct);
+                        mod_struct = NULL;
                     }
                     ui_nodes2.erase(iter);
                 }

@@ -25,8 +25,10 @@ struct xfader_module {
     
     //other data
     float mixer_amount;
-    float* new_output;
+    float* new_output;    
 };
+
+#define STRUCT_IDX 0
 
 void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_, std::string module_name);
 void xfader_module_process(std::stack<void *> &value_stack);

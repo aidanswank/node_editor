@@ -23,7 +23,7 @@ void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vec
         NULL,
         NULL,
         0.5,
-        new float[256]()
+        new float[256](),
     };
     
     //push module struct as ui node
@@ -72,7 +72,7 @@ void xfader_module_process(std::stack<void *> &value_stack)
 
 void xfader_module_show(const uinode2 &node, example::Graph<Node2> &graph)
 {
-    xfader_module* xfmod = (xfader_module*)graph.node(node.ui[0]).value; // store struct in index zero
+    xfader_module* xfmod = (xfader_module*)graph.node(node.ui[STRUCT_IDX]).value; // store struct in index zero
     
     const float node_width = 100.0f;
     ImNodes::BeginNode(node.id);

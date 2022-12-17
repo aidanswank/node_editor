@@ -38,10 +38,11 @@ target_include_directories(imnodes PUBLIC ${CMAKE_SOURCE_DIR})
 target_link_libraries(imnodes PUBLIC imgui::imgui)
 
 include_directories(${CMAKE_SOURCE_DIR} include vendor ${vst3sdk_path})
-link_directories(${vst3sdk_path}/build/lib/Debug)
+link_directories(${vst3sdk_path}/build/lib/)
 
 file(GLOB SOURCES 
         src/*.cpp
+        vendor/*.cpp
         vendor/EasyVst/EasyVst.cpp
         vendor/EasyVst/window.mm
         ${vst3sdk_path}/public.sdk/source/vst/hosting/connectionproxy.cpp
@@ -57,7 +58,7 @@ file(GLOB SOURCES
         ${vst3sdk_path}/public.sdk/source/vst/hosting/module_mac.mm
 )
 
-file(GLOB INCLUDES include/*.h)
+file(GLOB INCLUDES include/*.h vendor/*.h)
 include_directories(vendor/EasyVst/EasyVst.h ${vst3sdk_path})
 
 #message(STATUS "sources ${SOURCES}")

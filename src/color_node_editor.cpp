@@ -36,6 +36,7 @@ struct node_module_funcs
 #include "midi_in_module.h"
 #include "output_module.h"
 #include "xfader_module.h"
+#include "jfilter_module.h"
 
 
 namespace example
@@ -322,6 +323,7 @@ public:
                             graph2.erase_node(iter->ui[i]);
                         }
           
+//                        print("freeing ptr",&mod_struct);
                         free(mod_struct);
                         mod_struct = NULL;
                     }
@@ -372,6 +374,12 @@ void NodeEditorInitialize()
     print("node editor init");
     ImNodesIO& io = ImNodes::GetIO();
     io.LinkDetachWithModifierClick.Modifier = &ImGui::GetIO().KeyCtrl;
+    
+    io.MultipleSelectModifier.Modifier = &ImGui::GetIO().KeyCtrl;
+
+    ImNodesStyle& style = ImNodes::GetStyle();
+    style.Flags |= ImNodesStyleFlags_GridLinesPrimary | ImNodesStyleFlags_GridSnapping;
+    
     ImNodes::StyleColorsClassic();
     
 //    color_editor.node_types.push_back("value");
@@ -393,17 +401,29 @@ void NodeEditorInitialize()
     module2.init = osc_module_init;
     module2.show = osc_module_show;
     module2.process = osc_module_process;
+    
     color_editor.node_types.push_back(module2_name);
     color_editor.module_funcs.push_back(module2);
     
-    std::string module3_name = "Xfader";
+    std::string module3_name = "xFader";
     node_module_funcs module3;
     module3.type = module3_name;
     module3.init = xfader_module_init;
     module3.show = xfader_module_show;
     module3.process = xfader_module_process;
+    
     color_editor.node_types.push_back(module3_name);
     color_editor.module_funcs.push_back(module3);
+    
+    std::string module4_name = "jFilter";
+    node_module_funcs module4;
+    module4.type = module4_name;
+    module4.init = jfilter_module_init;
+    module4.show = jfilter_module_show;
+    module4.process = jfilter_module_process;
+    
+    color_editor.node_types.push_back(module4_name);
+    color_editor.module_funcs.push_back(module4);
 
     // Vector to store the pointers to the functions
 //    std::vector<ProcessFunc> funcs;

@@ -81,6 +81,9 @@ void midiin_module_init(ImVec2 click_pos, example::Graph<Node> &audio_graph_, st
     ui_nodes_.push_back(ui_node);
 
     ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
+    
+//    ImNodes::SnapNodeToGrid(ui_node.id);
+
 
 };
 void midiin_module_process(std::stack<void *> &value_stack)

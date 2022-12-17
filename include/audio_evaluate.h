@@ -44,10 +44,13 @@ float* audio_evaluate(const Graph<Node2>& graph, const int root_node, std::vecto
 
     // The final output node isn't evaluated in the loop -- instead we just pop
     // the three values which should be in the stack.
-     assert(value_stack.size() == 2ull); //<-- NUM PARAMS TO POP
+//     assert(value_stack.size() == 2ull); //<-- NUM PARAMS TO POP
 //     print("stack sz", value_stack.size());
 
-     output_module_process(res, value_stack);
+    if(value_stack.size()>=2)
+    {
+        output_module_process(res, value_stack);
+    }
 
 
     return res;

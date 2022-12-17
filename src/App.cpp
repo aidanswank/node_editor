@@ -5,7 +5,8 @@
 
 void App::Initialize()
 {
-    SDL_Init(SDL_INIT_EVERYTHING);
+//    SDL_Init(SDL_INIT_EVERYTHING);
+    SDL_Init(SDL_INIT_VIDEO);
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
 
@@ -45,6 +46,7 @@ void App::Frame()
         {
             running = 0;
         }
+        //        SDL_WaitEventTimeout(&Event,1);
     }
 
     mygui->NewFrame();

@@ -34,6 +34,7 @@ void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector
     ui_nodes_.push_back(ui_node);
 
     ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
+//    ImNodes::SnapNodeToGrid(ui_node.id);
 };
 
 void osc_module_process(std::stack<void *> &value_stack)

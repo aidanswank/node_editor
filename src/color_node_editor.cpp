@@ -1,6 +1,6 @@
 #include "node_editor.h"
 #include "graph.h"
-#include "Oscillator.h"
+#include "modules/Oscillator.h"
 #include "EasyVst/EasyVst.h"
 
 #include <imnodes.h>
@@ -32,11 +32,11 @@ struct node_module_funcs
 };
 
 
-#include "test_module.h"
-#include "midi_in_module.h"
-#include "output_module.h"
-#include "xfader_module.h"
-#include "jfilter_module.h"
+#include "modules/test_module.h"
+#include "modules/midi_in_module.h"
+#include "modules/output_module.h"
+#include "modules/xfader_module.h"
+#include "modules/jfilter_module.h"
 
 
 namespace example

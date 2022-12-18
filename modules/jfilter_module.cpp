@@ -39,10 +39,10 @@ void jfilter_module_process(std::stack<void *> &value_stack)
 {
     // pop off audio input data from other modules
     
-    float* cutoff_input = (float*)value_stack.top();
+    float *cutoff_input = (float*)value_stack.top();
     value_stack.pop();
-    
-    float* input_audio = (float*)value_stack.top();
+        
+    float *input_audio = (float*)value_stack.top();
     value_stack.pop();
     
     // pop off module struct last
@@ -54,7 +54,20 @@ void jfilter_module_process(std::stack<void *> &value_stack)
     for(int i = 0; i < 256; i++)
     {
 //        new_output[i] = *jf_data->filter.doFilter(input_audio[i], jf_data->cutoff, jf_data->resonance);
-        new_output[i] = *jf_data->filter.doFilter(input_audio[i], cutoff_input[i], jf_data->resonance);
+        
+        float cutoff = -1;
+        
+        if(*cutoff_input!=0) // if nothings plugged in
+        {
+            cutoff = cutoff_input[i];
+        } else {
+            cutoff = jf_data->cutoff; // use ui value
+        }
+        
+        assert(cutoff != -1);
+        
+        new_output[i] = *jf_data->filter.doFilter(input_audio[i], cutoff, jf_data->resonance);
+ 
     }
 
     value_stack.push(new_output);
@@ -82,7 +95,7 @@ void jfilter_module_show(const uinode2 &node, example::Graph<Node2> &graph)
     }
 
     ImGui::PushItemWidth(node_width);
-//    ImGui::DragFloat("cutoff", &jf_data->cutoff, 0.01f, 0.f, 1.0f);
+    ImGui::DragFloat("##hidelabel", &jf_data->cutoff, 0.01f, 0.f, 1.0f);
     ImGui::DragFloat("resonance", &jf_data->resonance, 0.01f, 0.f, 1.0f);
     ImGui::PopItemWidth();
 

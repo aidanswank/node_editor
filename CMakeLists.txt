@@ -1,10 +1,13 @@
 # first build vst3sdk and paste root path here
 set(vst3sdk_path "/Users/aidan/dev/vst/vst3_x86_64/vst3sdk") #e.g /Users/aidan/dev/vst3sdk
+# set(vst3sdk_path "/Users/aidan/dev/vst/vst3sdk_arm")
+
 message("USING VST3SDK PATH PROVIDED: ${vst3sdk_path}")
 
 cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE INTERNAL "" FORCE)
+# set(VCPKG_TARGET_ARCHITECTURE "x64")
 
 # Define a variable for the project name
 set(PROJECT_NAME MyEditor)
@@ -41,7 +44,7 @@ target_include_directories(imnodes PUBLIC ${CMAKE_SOURCE_DIR})
 target_link_libraries(imnodes PUBLIC imgui::imgui)
 
 include_directories(${CMAKE_SOURCE_DIR} include vendor ${vst3sdk_path})
-link_directories(${vst3sdk_path}/build/lib/)
+link_directories(${vst3sdk_path}/build/lib/Debug)
 
 file(GLOB MODULE_SOURCES modules/*.cpp)
 file(GLOB MODULE_INCLUDES modules/*.h)
@@ -114,6 +117,6 @@ if(CMAKE_GENERATOR STREQUAL Xcode)
     # RESOURCE "${RESOURCE_FILES}")
 else() #for unix makefiles 
 	set (CMAKE_CXX_FLAGS "-DRELEASE=1")
-	set_property (TARGET MyProject APPEND_STRING PROPERTY COMPILE_FLAGS "-fobjc-arc -ObjC++")
+	set_property (TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS "-fobjc-arc -ObjC++")
 endif()
 

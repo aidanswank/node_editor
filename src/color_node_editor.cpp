@@ -37,7 +37,7 @@ struct node_module_funcs
 #include "modules/output_module.h"
 #include "modules/xfader_module.h"
 #include "modules/jfilter_module.h"
-
+#include "modules/adsr_module.h"
 
 namespace example
 {
@@ -424,6 +424,16 @@ void NodeEditorInitialize()
     
     color_editor.node_types.push_back(module4_name);
     color_editor.module_funcs.push_back(module4);
+    
+    std::string module5_name = "ADSR";
+    node_module_funcs module5;
+    module5.type = module5_name;
+    module5.init = adsr_module_init;
+    module5.show = adsr_module_show;
+    module5.process = adsr_module_process;
+    
+    color_editor.node_types.push_back(module5_name);
+    color_editor.module_funcs.push_back(module5);
 
     // Vector to store the pointers to the functions
 //    std::vector<ProcessFunc> funcs;

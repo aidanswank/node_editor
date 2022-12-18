@@ -11,7 +11,7 @@
 
 void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_, std::string module_name)
 {
-    print("test module init", (std::string)magic_enum::enum_name(PARAM::osc_ptr));
+    // print("test module init", (std::string)magic_enum::enum_name(PARAM::osc_ptr));
     
     Oscillator *osc_ptr = new Oscillator();
     osc_ptr->setMode(Oscillator::OSCILLATOR_MODE_SINE);

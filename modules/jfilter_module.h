@@ -11,7 +11,7 @@
 #include "CjFilter.h"
 
 struct jfilter_data {
-    //io
+    
     float* input_audio;
     int input_audio_attr;
     float* new_output;
@@ -19,6 +19,9 @@ struct jfilter_data {
     float cutoff;
     float resonance;
     CjFilter filter;
+    
+    float* cutoff_input;
+    int cutoff_input_attr;
     
 };
 

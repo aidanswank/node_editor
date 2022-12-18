@@ -52,7 +52,7 @@ void midiin_module_init(ImVec2 click_pos, example::Graph<Node> &audio_graph_, st
     catch (RtMidiError &err)
     {
         err.printMessage();
-        return 1;
+        // return 1;
     }
     
     try
@@ -63,7 +63,7 @@ void midiin_module_init(ImVec2 click_pos, example::Graph<Node> &audio_graph_, st
     catch (RtMidiError &err)
     {
         err.printMessage();
-        return 1;
+        // return 1;
     }
     
     const Node midiin_ptr_node(NodeType::value, (void *)midiIn);

@@ -8,7 +8,7 @@
 #include "graph.h"
 #include <vector>
 #include "NodeDefs.h"
-#include "magic_enum.hpp"
+// #include "magic_enum.hpp"
 
 // // ids of nodes that point to data
 // struct TestModule

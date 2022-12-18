@@ -102,7 +102,7 @@ void audio_interface::close_stream()
     PaError err;
     err = Pa_CloseStream(stream);
     if (err != paNoError) {
-            std::cerr << "Failed to close PortAudio stream" << std::endl;
-            return 1;
+        std::cerr << "Failed to close PortAudio stream" << std::endl;
+            // return 1;
     }
 }

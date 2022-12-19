@@ -1,9 +1,9 @@
 #include "adsr_module.h"
 
-void adsr_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes, std::string module_name)
+void adsr_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes)
 {
     uinode2 ui_node;
-    ui_node.type = module_name;
+    ui_node.type = "adsr";
     ui_node.id = graph.insert_node( Node2( ui_node.type ) );
 
     EnvelopeGenerator *envelope_generator = new EnvelopeGenerator;

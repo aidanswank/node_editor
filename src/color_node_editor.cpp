@@ -20,16 +20,16 @@ int buffer_size = 256;
 
 #include "NodeDefs.h"
 
-struct node_module_funcs
-{
-    std::string type;
-    using process_func = void(*)(std::stack<void *> &);
-    using init_func = void(*)(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_, std::string module_name);
-    using show_func = void(*)(const uinode2 &, example::Graph<Node2> &);
-    process_func process;
-    init_func init;
-    show_func show;
-};
+//struct node_module_funcs
+//{
+//    std::string type;
+//    using process_func = void(*)(std::stack<void *> &);
+//    using init_func = void(*)(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_);
+//    using show_func = void(*)(const uinode2 &, example::Graph<Node2> &);
+//    process_func process;
+//    init_func init;
+//    show_func show;
+//};
 
 
 #include "modules/test_module.h"
@@ -168,7 +168,7 @@ public:
                         {
 //                            for(int a = 0; a < 100; a++)
 //                            {
-                                module_funcs[i].init(click_pos, graph2, ui_nodes2, module_funcs[i].type);
+                                module_funcs[i].init(click_pos, graph2, ui_nodes2);
 //                            }
                         }
                     }
@@ -359,7 +359,7 @@ public:
     std::vector<UiNode> ui_nodes;
     std::vector<uinode2> ui_nodes2;
     std::vector<std::string> node_types;
-    std::vector<node_module_funcs> module_funcs;
+    std::vector<node_module_base> module_funcs;
     int root_node_id_;
     int audio_root_node_id_;
     ImNodesMiniMapLocation minimap_location_;
@@ -387,7 +387,7 @@ void NodeEditorInitialize()
 //    color_editor.node_types.push_back("osc");
     
     std::string module1_name = "output";
-    node_module_funcs module1;
+    node_module_base module1;
     module1.type = module1_name;
 //    module1.init = output_module_init; // DIFF FUNCTION BECAUSE ROOT_NODE_ID !!! BUT SHOW FUNC WORKS
     module1.show = output_module_show;
@@ -395,44 +395,42 @@ void NodeEditorInitialize()
     color_editor.node_types.push_back(module1_name);
     color_editor.module_funcs.push_back(module1);
     
-    std::string module2_name = "Oscillator";
-    node_module_funcs module2;
-    module2.type = module2_name;
+    node_module_base module2;
+    module2.type = "osc";
     module2.init = osc_module_init;
     module2.show = osc_module_show;
     module2.process = osc_module_process;
-    
-    color_editor.node_types.push_back(module2_name);
+//    jfilter_loader(&module2);
+    color_editor.node_types.push_back(module2.type);
     color_editor.module_funcs.push_back(module2);
     
-    std::string module3_name = "xFader";
-    node_module_funcs module3;
-    module3.type = module3_name;
+    node_module_base module3;
+    module3.type = "xfader";
     module3.init = xfader_module_init;
     module3.show = xfader_module_show;
     module3.process = xfader_module_process;
     
-    color_editor.node_types.push_back(module3_name);
+    color_editor.node_types.push_back(module3.type);
     color_editor.module_funcs.push_back(module3);
     
-    std::string module4_name = "jFilter";
-    node_module_funcs module4;
-    module4.type = module4_name;
-    module4.init = jfilter_module_init;
-    module4.show = jfilter_module_show;
-    module4.process = jfilter_module_process;
+    node_module_base module4;
+//    module4.type = "jfilter";
+//    module4.init = jfilter::module_init;
+//    module4.show = jfilter::module_show;
+//    module4.process = jfilter::module_process;
     
-    color_editor.node_types.push_back(module4_name);
+    jfilter::glue_known(&module4);
+    
+    color_editor.node_types.push_back(module4.type);
     color_editor.module_funcs.push_back(module4);
     
-    std::string module5_name = "ADSR";
-    node_module_funcs module5;
-    module5.type = module5_name;
+    node_module_base module5;
+    module5.type = "adsr";
     module5.init = adsr_module_init;
     module5.show = adsr_module_show;
     module5.process = adsr_module_process;
     
-    color_editor.node_types.push_back(module5_name);
+    color_editor.node_types.push_back(module5.type);
     color_editor.module_funcs.push_back(module5);
 
     // Vector to store the pointers to the functions

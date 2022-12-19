@@ -1,13 +1,21 @@
 #include "jfilter_module.h"
 
-void jfilter_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_, std::string module_name)
+void jfilter::glue_known(node_module_base *instance)
+{
+    instance->type = "jfilter";
+    instance->init = jfilter::module_init;
+    instance->show = jfilter::module_show;
+    instance->process = jfilter::module_process;
+};
+
+void jfilter::module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_)
 {
     uinode2 ui_node;
-    ui_node.type = module_name;
+    ui_node.type = "jfilter";
     ui_node.id = graph.insert_node( Node2( ui_node.type ) );
 
     // set up module struct
-    jfilter_data *jf_data = new jfilter_data
+    jfilter::jfilter_data *jf_data = new jfilter::jfilter_data
     {
         new float[256](),
         NULL,
@@ -35,7 +43,7 @@ void jfilter_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::ve
     ImNodes::SetNodeScreenSpacePos(ui_node.id, click_pos);
 };
 
-void jfilter_module_process(std::stack<void *> &value_stack)
+void jfilter::module_process(std::stack<void *> &value_stack)
 {
     // pop off audio input data from other modules
     
@@ -46,7 +54,7 @@ void jfilter_module_process(std::stack<void *> &value_stack)
     value_stack.pop();
     
     // pop off module struct last
-    jfilter_data *jf_data = (jfilter_data*)value_stack.top();
+    jfilter::jfilter_data *jf_data = (jfilter::jfilter_data*)value_stack.top();
     value_stack.pop();
     
     float *new_output = jf_data->new_output;
@@ -57,11 +65,11 @@ void jfilter_module_process(std::stack<void *> &value_stack)
         
         float cutoff = -1;
         
-        if(*cutoff_input!=0) // if nothings plugged in
+        if(*cutoff_input==0) // if nothings plugged in
         {
-            cutoff = cutoff_input[i];
-        } else {
             cutoff = jf_data->cutoff; // use ui value
+        } else {
+            cutoff = cutoff_input[i];
         }
         
         assert(cutoff != -1);
@@ -73,9 +81,9 @@ void jfilter_module_process(std::stack<void *> &value_stack)
     value_stack.push(new_output);
 };
 
-void jfilter_module_show(const uinode2 &node, example::Graph<Node2> &graph)
+void jfilter::module_show(const uinode2 &node, example::Graph<Node2> &graph)
 {
-    jfilter_data* jf_data = (jfilter_data*)graph.node(node.ui[STRUCT_IDX]).value; // store struct in index zero
+    jfilter::jfilter_data* jf_data = (jfilter::jfilter_data*)graph.node(node.ui[STRUCT_IDX]).value; // store struct in index zero
     
     const float node_width = 100;
     ImNodes::BeginNode(node.id);
@@ -95,7 +103,10 @@ void jfilter_module_show(const uinode2 &node, example::Graph<Node2> &graph)
     }
 
     ImGui::PushItemWidth(node_width);
-    ImGui::DragFloat("##hidelabel", &jf_data->cutoff, 0.01f, 0.f, 1.0f);
+//    if(*jf_data->cutoff_input==0)
+//    {
+    ImGui::DragFloat("cutoff", &jf_data->cutoff, 0.01f, 0.f, 1.0f);
+//    }
     ImGui::DragFloat("resonance", &jf_data->resonance, 0.01f, 0.f, 1.0f);
     ImGui::PopItemWidth();
 

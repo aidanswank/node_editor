@@ -1,9 +1,9 @@
 #include "xfader_module.h"
 
-void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_, std::string module_name)
+void xfader_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_)
 {
     uinode2 ui_node;
-    ui_node.type = module_name;
+    ui_node.type = "xfader";
     ui_node.id = graph.insert_node( Node2( ui_node.type ) );
 
 //     set up module struct

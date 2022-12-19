@@ -9,16 +9,16 @@
 
 #define SKETCHY_CREATE_NODE(node_name, var_name) const Node2 node_name##_node("value", (void*)var_name); ui_node.ui.push_back( graph.insert_node( a(node_name) ) );
 
-void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_, std::string module_name)
+void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_)
 {
     // print("test module init", (std::string)magic_enum::enum_name(PARAM::osc_ptr));
     
     Oscillator *osc_ptr = new Oscillator();
     osc_ptr->setMode(Oscillator::OSCILLATOR_MODE_SINE);
     osc_ptr->setSampleRate(44100);
-
+    
     uinode2 ui_node;
-    ui_node.type = module_name;
+    ui_node.type = "osc";
     ui_node.id = graph.insert_node( Node2( ui_node.type ) );
     
     SKETCHY_CREATE_NODE(osc_ptr, osc_ptr);

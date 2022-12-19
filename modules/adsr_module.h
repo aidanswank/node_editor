@@ -23,7 +23,7 @@ struct adsr_data {
     float release;
 };
 
-void adsr_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes, std::string module_name);
+void adsr_module_init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes);
 void adsr_module_process(std::stack<void *> &value_stack);
 void adsr_module_show(const uinode2 &node, example::Graph<Node2> &graph);
 

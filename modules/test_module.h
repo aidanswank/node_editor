@@ -31,7 +31,7 @@ enum PARAM { osc_ptr, freq, osc_type, osc_out, kParams };
 
 double midi2Freq(int n);
 
-void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_, std::string module_name);
+void osc_module_init(ImVec2 click_pos, example::Graph<Node2> &audio_graph_, std::vector<uinode2> &ui_nodes_);
 void osc_module_process(std::stack<void *> &value_stack);
 void osc_module_show(const uinode2 &node, example::Graph<Node2> &audio_graph_);
     

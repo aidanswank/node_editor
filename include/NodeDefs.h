@@ -56,6 +56,18 @@ struct uinode2
     std::vector<int> ui;
 };
 
+#include "imgui.h"
+struct node_module_base
+{
+    std::string type;
+    using process_func = void(*)(std::stack<void *> &);
+    using init_func = void(*)(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes_);
+    using show_func = void(*)(const uinode2 &, example::Graph<Node2> &);
+    init_func init;
+    show_func show;
+    process_func process;
+};
+
 struct UiNode
 {
     NodeType type;

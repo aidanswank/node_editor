@@ -31,6 +31,7 @@ int buffer_size = 256;
 //    show_func show;
 //};
 
+#include "modules/module.h"
 
 #include "modules/test_module.h"
 #include "modules/midi_in_module.h"

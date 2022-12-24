@@ -26,10 +26,11 @@ void output_module_init(int &audio_root_node_id_, ImVec2 click_pos, example::Gra
     graph.insert_edge(audio_ui_node.id, audio_ui_node.ui[1]);
 
     ui_nodes.push_back(audio_ui_node);
-    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos);
+//    ImNodes::SetNodeScreenSpacePos(audio_ui_node.id, click_pos); // comment out when refactoring module
     audio_root_node_id_ = audio_ui_node.id;
 };
 
+#include "out2_module.h"
 void output_module_show(const uinode2 &node, example::Graph<Node2> &graph)
 {
     const float node_width = 50;
@@ -68,6 +69,7 @@ void output_module_show(const uinode2 &node, example::Graph<Node2> &graph)
 
     ImNodes::EndNode();
 };
+
 void output_module_process(float* &res, std::stack<void *> &value_stack)
 {
     float *gain_arr = (float*)value_stack.top();

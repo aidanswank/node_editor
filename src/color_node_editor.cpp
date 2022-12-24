@@ -33,12 +33,18 @@ int buffer_size = 256;
 
 #include "modules/module.h"
 
-#include "modules/test_module.h"
-#include "modules/midi_in_module.h"
+//#include "modules/test_module.h"
+//#include "modules/midi_in_module.h"
 #include "modules/output_module.h"
-#include "modules/xfader_module.h"
+//#include "modules/xfader_module.h"
 #include "modules/jfilter_module.h"
 #include "modules/adsr_module.h"
+
+// versions 2
+#include "modules/lop_module.h"
+#include "modules/out2_module.h"
+#include "modules/oscillator_module.h"
+#include "modules/midiin_module.h"
 
 namespace example
 {
@@ -161,15 +167,15 @@ public:
       
         
 //                        midiin_module_init(click_pos, graph, ui_nodes);
-                for(int i = 0; i < module_funcs.size(); i++)
+                for(int i = 0; i < modules.size(); i++)
                 {
-                    if(module_funcs[i].type!="output") // skip
+                    if(modules[i]->type!="output") // skip
                     {
-                        if (ImGui::MenuItem(module_funcs[i].type.c_str()))
+                        if (ImGui::MenuItem(modules[i]->type.c_str()))
                         {
 //                            for(int a = 0; a < 100; a++)
 //                            {
-                                module_funcs[i].init(click_pos, graph2, ui_nodes2);
+                            modules[i]->init(click_pos, graph2, ui_nodes2);
 //                            }
                         }
                     }
@@ -192,14 +198,31 @@ public:
 
         for (const uinode2& node : ui_nodes2)
         {
-            for(int i = 0; i < module_funcs.size(); i++)
+            for(int i = 0; i < modules.size(); i++)
             {
-                if(module_funcs[i].type==node.type)
+
+                if(modules[i]->type==node.type)
                 {
-                    module_funcs[i].show(node, graph2);
+                    modules[i]->show(node, graph2);
                 }
+                
+//                if(modules[i]->type=="output")
+//                {
+////                    print("ummm");
+//                    output_module_show(node, graph2);
+//                } else {
+//                    if(modules[i]->type==node.type)
+//                   {
+//                       modules[i]->show(node, graph2);
+//                   }
+//                }
             }
         }
+        
+//        if(audio_root_node_id_ != -1)
+//        {
+//            output_module_show(node, graph2);
+//        }
         
         for (const auto& edge : graph2.edges())
         {
@@ -360,7 +383,9 @@ public:
     std::vector<UiNode> ui_nodes;
     std::vector<uinode2> ui_nodes2;
     std::vector<std::string> node_types;
-    std::vector<node_module_base> module_funcs;
+//    std::vector<node_module_base> module_funcs;
+    std::vector<xmodule*> modules;
+
     int root_node_id_;
     int audio_root_node_id_;
     ImNodesMiniMapLocation minimap_location_;
@@ -369,6 +394,11 @@ public:
 } // namespace
 
 static ColorNodeEditor color_editor;
+
+static node_module_base extracted() {
+    node_module_base module3;
+    return module3;
+}
 
 void NodeEditorInitialize()
 {
@@ -383,61 +413,71 @@ void NodeEditorInitialize()
     
     ImNodes::StyleColorsClassic();
     
-//    color_editor.node_types.push_back("value");
-//    color_editor.node_types.push_back("output");
-//    color_editor.node_types.push_back("osc");
-    
-    std::string module1_name = "output";
-    node_module_base module1;
-    module1.type = module1_name;
+//    std::string module1_name = "output";
+//    node_module_base module1;
+//    module1.type = module1_name;
 //    module1.init = output_module_init; // DIFF FUNCTION BECAUSE ROOT_NODE_ID !!! BUT SHOW FUNC WORKS
-    module1.show = output_module_show;
+//    module1.show = output_module_show;
 //    module1.process = output_module_process; // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    color_editor.node_types.push_back(module1_name);
-    color_editor.module_funcs.push_back(module1);
+//    color_editor.node_types.push_back(module1_name);
+//    color_editor.module_funcs.push_back(module1);
+//
+//    color_editor.modules.push_back(module1_name);
     
-    node_module_base module2;
-    module2.type = "osc";
-    module2.init = osc_module_init;
-    module2.show = osc_module_show;
-    module2.process = osc_module_process;
-//    jfilter_loader(&module2);
-    color_editor.node_types.push_back(module2.type);
-    color_editor.module_funcs.push_back(module2);
+//    node_module_base module2;
+//    module2.type = "osc";
+//    module2.init = osc_module_init;
+//    module2.show = osc_module_show;
+//    module2.process = osc_module_process;
+////    jfilter_loader(&module2);
+//    color_editor.node_types.push_back(module2.type);
+//    color_editor.module_funcs.push_back(module2);
+//
+//    node_module_base module3 = extracted();
+//    module3.type = "xfader";
+//    module3.init = xfader_module_init;
+//    module3.show = xfader_module_show;
+//    module3.process = xfader_module_process;
+//
+//    color_editor.node_types.push_back(module3.type);
+//    color_editor.module_funcs.push_back(module3);
+//
+//    node_module_base module4;
+////    module4.type = "jfilter";
+////    module4.init = jfilter::module_init;
+////    module4.show = jfilter::module_show;
+////    module4.process = jfilter::module_process;
+//
+//    jfilter::glue_known(&module4);
+//
+//    color_editor.node_types.push_back(module4.type);
+//    color_editor.module_funcs.push_back(module4);
+//
+//    node_module_base module5;
+//    module5.type = "adsr";
+//    module5.init = adsr_module_init;
+//    module5.show = adsr_module_show;
+//    module5.process = adsr_module_process;
+//
+//    color_editor.node_types.push_back(module5.type);
+//    color_editor.module_funcs.push_back(module5);
     
-    node_module_base module3;
-    module3.type = "xfader";
-    module3.init = xfader_module_init;
-    module3.show = xfader_module_show;
-    module3.process = xfader_module_process;
+    lop_filter *lop_module = new lop_filter();
+    color_editor.modules.push_back(lop_module);
+    color_editor.node_types.push_back(lop_module->type);
     
-    color_editor.node_types.push_back(module3.type);
-    color_editor.module_funcs.push_back(module3);
+    output_module *out_module = new output_module(&color_editor.audio_root_node_id_);
+    color_editor.modules.push_back(out_module);
+    color_editor.node_types.push_back(out_module->type);
+    ///
+    oscillator_module *osc_module = new oscillator_module();
+    color_editor.modules.push_back(osc_module);
+    color_editor.node_types.push_back(osc_module->type);
     
-    node_module_base module4;
-//    module4.type = "jfilter";
-//    module4.init = jfilter::module_init;
-//    module4.show = jfilter::module_show;
-//    module4.process = jfilter::module_process;
+    midiin_module *midiin_mod = new midiin_module();
+    color_editor.modules.push_back(midiin_mod);
+    color_editor.node_types.push_back(midiin_mod->type);
     
-    jfilter::glue_known(&module4);
-    
-    color_editor.node_types.push_back(module4.type);
-    color_editor.module_funcs.push_back(module4);
-    
-    node_module_base module5;
-    module5.type = "adsr";
-    module5.init = adsr_module_init;
-    module5.show = adsr_module_show;
-    module5.process = adsr_module_process;
-    
-    color_editor.node_types.push_back(module5.type);
-    color_editor.module_funcs.push_back(module5);
-
-    // Vector to store the pointers to the functions
-//    std::vector<ProcessFunc> funcs;
-    
-//    funcs.push_back(midiin_module_process);
 }
 
 float* audio_output = new float[buffer_size]();
@@ -456,7 +496,7 @@ float* NodeEditorAudioCallback()
     // print("audio_root_node_id",color_editor.audio_root_node_id_);
     if(color_editor.audio_root_node_id_ != -1)
     {
-        audio_output = audio_evaluate(color_editor.graph2, color_editor.audio_root_node_id_, color_editor.module_funcs);
+        audio_output = audio_evaluate(color_editor.graph2, color_editor.audio_root_node_id_, color_editor.modules);
     }
     return audio_output;
 }

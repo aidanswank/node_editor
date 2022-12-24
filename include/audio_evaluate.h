@@ -2,7 +2,7 @@ float* res = new float[buffer_size]();
 float* audio_input = new float[buffer_size*2]();
 int audio_input_chan_count = 0;
 
-float* audio_evaluate(const Graph<Node2>& graph, const int root_node, std::vector<node_module_base> &module_funcs)
+float* audio_evaluate(const Graph<Node2>& graph, const int root_node, std::vector<xmodule*> &module_funcs)
 {
 //    float* res;
     std::stack<int> postorder;
@@ -21,9 +21,9 @@ float* audio_evaluate(const Graph<Node2>& graph, const int root_node, std::vecto
         {
             for(int i = 0; i < module_funcs.size(); i++)
             {
-                if(module_funcs[i].type==node.type)
+                if(module_funcs[i]->type==node.type)
                 {
-                    module_funcs[i].process(value_stack);
+                    module_funcs[i]->process(value_stack);
                 }
             }
         }

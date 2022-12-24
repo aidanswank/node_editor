@@ -19,7 +19,7 @@
 //     int freq;
 // };
 
-struct osc_module
+struct oscillator_module
 {
     Oscillator osc_ptr;
     float freq_num;

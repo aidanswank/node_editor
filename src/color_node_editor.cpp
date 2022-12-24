@@ -45,6 +45,7 @@ int buffer_size = 256;
 #include "modules/out2_module.h"
 #include "modules/oscillator_module.h"
 #include "modules/midiin_module.h"
+#include "modules/vst3_midi_module.h"
 
 namespace example
 {
@@ -477,6 +478,10 @@ void NodeEditorInitialize()
     midiin_module *midiin_mod = new midiin_module();
     color_editor.modules.push_back(midiin_mod);
     color_editor.node_types.push_back(midiin_mod->type);
+    
+    vst3_midi_module *vst3_midi_mod = new vst3_midi_module();
+    color_editor.modules.push_back(vst3_midi_mod);
+    color_editor.node_types.push_back(vst3_midi_mod->type);
     
 }
 

@@ -13,17 +13,19 @@ struct MidiNoteMessage
     bool isNoteOn = false;
 };
 
-struct UserData {
-    // EasyVst vst;
-    uint64_t continuousSamples = 0;
-    moodycamel::ConcurrentQueue<MidiNoteMessage> notesQueue;
-};
+//struct UserData {
+//    // EasyVst vst;
+//    uint64_t continuousSamples = 0;
+//    moodycamel::ConcurrentQueue<MidiNoteMessage> notesQueue;
+//};
 
 struct midiin_module_data
 {
     RtMidiIn* midiin_ptr;
     //    UserData* userdata_ptr;
-    std::vector<MidiNoteMessage> notes;
+//    std::vector<MidiNoteMessage> notes;
+//    uint64_t continuousSamples = 0;
+    moodycamel::ConcurrentQueue<MidiNoteMessage> notesQueue;
 };
 
 double midi2Freq(int n);

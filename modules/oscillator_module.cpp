@@ -47,14 +47,16 @@ void oscillator_module::process(std::stack<void *> &value_stack)
     oscillator_module_data *module_data = (oscillator_module_data*)value_stack.top();
     value_stack.pop();
 
-//    module_data->osc_ptr->setFrequency(module_data->freq);
-    if(midiin_data->notes.size()>0)
-    {
-        if(midiin_data->notes[0].isNoteOn)
-        {
-            module_data->osc_ptr->setFrequency(midi2Freq(midiin_data->notes[0].noteNum));
-        }
-    }
+    module_data->osc_ptr->setFrequency(module_data->freq);
+//    bool foo = false;
+//    if(midiin_data->notes.size()>0)
+//    {
+//        foo=true;
+//        if(midiin_data->notes[0].isNoteOn)
+//        {
+//            module_data->osc_ptr->setFrequency(midi2Freq(midiin_data->notes[0].noteNum));
+//        }
+//    }
     module_data->osc_ptr->setMode((Oscillator::OscillatorMode)module_data->osc_type);
 
     for (int i = 0; i < 256; i++)
@@ -68,9 +70,15 @@ void oscillator_module::process(std::stack<void *> &value_stack)
         module_data->output[i] = osc_output;
     }
     
+//    if(foo)
+//    {
+//        midiin_data->notes.pop_back();
+//    }
+    
     value_stack.push(module_data->output);
     
-    midiin_data->notes.clear();
+
+//    midiin_data->notes.clear();
 }
 
 void oscillator_module::show(const uinode2 &node, example::Graph<Node2> &graph)

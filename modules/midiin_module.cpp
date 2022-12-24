@@ -7,8 +7,8 @@ void midiin_module::init(ImVec2 click_pos, example::Graph<Node2> &graph, std::ve
     ui_node.type = this->type;
     ui_node.id = graph.insert_node( Node2( ui_node.type ) );
 
-    UserData *userdata = new UserData;
-    userdata->continuousSamples = 0;
+//    UserData *userdata = new UserData;
+//    userdata->continuousSamples = 0;
 
     print("midi in module init");
     RtMidiIn *midiIn = nullptr;
@@ -58,7 +58,8 @@ void midiin_module::init(ImVec2 click_pos, example::Graph<Node2> &graph, std::ve
     
 //        module_data->userdata_ptr = userdata;
     module_data->midiin_ptr = midiIn;
-    module_data->notes = notes;
+//    module_data->continuousSamples = 0;
+//    module_data->notes = notes;
 
     push_value_node(module_data, ui_node, graph);
     
@@ -99,11 +100,17 @@ void midiin_module::show(const uinode2 &node, example::Graph<Node2> &graph)
 
 void midiCallback(double deltaTime, std::vector<unsigned char> *message, void *pUserData)
 {
+//    for(int i = 0; i < message->size(); i++)
+//    {
+//        std::cout << (int)message->at(i) << " ";
+//    }
+//    std::cout << std::endl;
+    
     if (message->size() < 3)
     {
         return;
     }
-
+    
     unsigned char command = message->at(0);
     unsigned char noteNum = message->at(1);
     unsigned char velocity = message->at(2);
@@ -112,22 +119,30 @@ void midiCallback(double deltaTime, std::vector<unsigned char> *message, void *p
 
 //    UserData *userData = static_cast<UserData *>(pUserData);
     midiin_module_data *module_data = static_cast<midiin_module_data *>(pUserData);
+    
+//    module_data->notes.clear();
 
     if (command == 144) {
-            MidiNoteMessage noteOnMsg;
-            noteOnMsg.noteNum = noteNum;
-            noteOnMsg.velocity = static_cast<float>(velocity) / 127.0f;
-            noteOnMsg.isNoteOn = true;
-//            userData->notesQueue.enqueue(noteOnMsg);
-            module_data->notes.push_back(noteOnMsg);
-        std::cout << module_data->notes.size() << std::endl;
+        MidiNoteMessage noteOnMsg;
+        noteOnMsg.noteNum = noteNum;
+        noteOnMsg.velocity = static_cast<float>(velocity) / 127.0f;
+        noteOnMsg.isNoteOn = true;
+        module_data->notesQueue.enqueue(noteOnMsg);
+//        module_data->notesQueue.enqueue(noteOnMsg);
+//            module_data->notes.push_back(noteOnMsg);
+//            module_data->notes.push_back(noteOnMsg);
+
+//        std::cout << module_data->notes.size() << std::endl;
     } else if (command == 128) {
-            MidiNoteMessage noteOffMsg;
-            noteOffMsg.noteNum = noteNum;
-            noteOffMsg.velocity = static_cast<float>(velocity) / 127.0f;
-            noteOffMsg.isNoteOn = false;
-//            userData->notesQueue.enqueue(noteOffMsg);
-            module_data->notes.push_back(noteOffMsg);
+        MidiNoteMessage noteOffMsg;
+        noteOffMsg.noteNum = noteNum;
+        noteOffMsg.velocity = static_cast<float>(velocity) / 127.0f;
+        noteOffMsg.isNoteOn = false;
+        module_data->notesQueue.enqueue(noteOffMsg);
+//        module_data->notesQueue.enqueue(noteOffMsg);
+//            module_data->notes.push_back(noteOffMsg);
+//            module_data->notes.push_back(noteOffMsg);
+
     }
 
 }

@@ -33,6 +33,9 @@ void midiin_module::init(ImVec2 click_pos, example::Graph<Node2> &graph, std::ve
     
     std::cout << "\nThere are " << nPorts << " MIDI input sources available.\n";
     std::string portName;
+    
+    module_data->port_names.push_back("-- NO SELECTION --");
+    
     for ( unsigned int i=0; i<nPorts; i++ ) {
         try {
         portName = midiIn->getPortName(i);
@@ -90,7 +93,7 @@ void select_port(int port, RtMidiIn* rtmidi)
 
 void midiin_module::show(const uinode2 &node, example::Graph<Node2> &graph)
 {
-    ImGui::PushItemWidth(150);
+    ImGui::PushItemWidth(175);
     ImNodes::BeginNode(node.id);
     
     midiin_module_data *module_data = (midiin_module_data*)graph.node(node.ui[STRUCT_IDX]).value; // store struct in index zero
@@ -132,18 +135,30 @@ void midiin_module::show(const uinode2 &node, example::Graph<Node2> &graph)
                 current_name = item_names[n].c_str();
 //                print(current_name, "selected", n);
 //                module_data->midiin_ptr->openPort(n);
-                try
+                if(n==0) // no selection
                 {
-                    module_data->midiin_ptr->closePort();
-
-                    module_data->midiin_ptr->openPort(n);
-                    module_data->midiin_ptr->setCallback(&midiCallback, module_data);
-                    module_data->select_choice = n;
-                }
-                catch (RtMidiError &err)
-                {
-                    err.printMessage();
-                    // return 1;
+                    try
+                    {
+                        module_data->midiin_ptr->closePort();
+                        module_data->select_choice = n;
+                    }
+                    catch (RtMidiError &err)
+                    {
+                        err.printMessage();
+                    }
+                } else { // select port
+                    try
+                    {
+                        module_data->midiin_ptr->closePort();
+                        
+                        module_data->midiin_ptr->openPort(n-1); // cuz no selection
+                        module_data->midiin_ptr->setCallback(&midiCallback, module_data);
+                        module_data->select_choice = n;
+                    }
+                    catch (RtMidiError &err)
+                    {
+                        err.printMessage();
+                    }
                 }
             }
         }
@@ -160,11 +175,6 @@ void midiin_module::show(const uinode2 &node, example::Graph<Node2> &graph)
 
 void midiCallback(double deltaTime, std::vector<unsigned char> *message, void *pUserData)
 {
-//    for(int i = 0; i < message->size(); i++)
-//    {
-//        std::cout << (int)message->at(i) << " ";
-//    }
-//    std::cout << std::endl;
     
     if (message->size() < 3)
     {

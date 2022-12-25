@@ -6,6 +6,9 @@
 #include <concurrentqueue/concurrentqueue.h>
 #include <cmath>
 
+#include "module_helper.h"
+//#include "imgui_helpers.h"
+
 struct MidiNoteMessage
 {
     int noteNum = -1;
@@ -29,6 +32,9 @@ struct midiin_module_data
     
     int node_id;
     int num_consumers = 0;
+    
+    std::vector<std::string> port_names;
+    int select_choice = 0;
 };
 
 double midi2Freq(int n);

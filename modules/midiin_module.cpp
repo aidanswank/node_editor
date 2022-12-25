@@ -10,6 +10,8 @@ void midiin_module::init(ImVec2 click_pos, example::Graph<Node2> &graph, std::ve
 //    UserData *userdata = new UserData;
 //    userdata->continuousSamples = 0;
 
+    midiin_module_data *module_data = new midiin_module_data;
+//    module_data->node_id = ui_node.id;
     print("midi in module init");
     RtMidiIn *midiIn = nullptr;
     try
@@ -21,6 +23,7 @@ void midiin_module::init(ImVec2 click_pos, example::Graph<Node2> &graph, std::ve
         err.printMessage();
         // return 1;
     }
+    
     
     unsigned int nPorts = midiIn->getPortCount();
     if (nPorts == 0)
@@ -37,23 +40,22 @@ void midiin_module::init(ImVec2 click_pos, example::Graph<Node2> &graph, std::ve
         catch ( RtMidiError &error ) {
         error.printMessage();
         }
+        module_data->port_names.push_back(portName);
         std::cout << "  Input Port #" << i+1 << ": " << portName << '\n';
     }
     
-    midiin_module_data *module_data = new midiin_module_data;
-    module_data->node_id = ui_node.id;
     
-    try
-    {
-        midiIn->openPort(2);
-//            midiIn->setCallback(&midiCallback, userdata);
-        midiIn->setCallback(&midiCallback, module_data);
-    }
-    catch (RtMidiError &err)
-    {
-        err.printMessage();
-        // return 1;
-    }
+//    try
+//    {
+//        midiIn->openPort(2);
+////            midiIn->setCallback(&midiCallback, userdata);
+//        midiIn->setCallback(&midiCallback, module_data);
+//    }
+//    catch (RtMidiError &err)
+//    {
+//        err.printMessage();
+//        // return 1;
+//    }
     
     std::vector<MidiNoteMessage> notes;
     
@@ -81,8 +83,14 @@ void midiin_module::process(std::stack<void *> &value_stack)
     value_stack.push(module_data);
 }
 
+void select_port(int port, RtMidiIn* rtmidi)
+{
+    rtmidi->openPort(port);
+};
+
 void midiin_module::show(const uinode2 &node, example::Graph<Node2> &graph)
 {
+    ImGui::PushItemWidth(150);
     ImNodes::BeginNode(node.id);
     
     midiin_module_data *module_data = (midiin_module_data*)graph.node(node.ui[STRUCT_IDX]).value; // store struct in index zero
@@ -107,12 +115,47 @@ void midiin_module::show(const uinode2 &node, example::Graph<Node2> &graph)
 //    ImGui::TextUnformatted(num_str);
 //    ImNodes::EndNodeTitleBar();
     DEBUG_NODE_TITLE_BAR(node.type)
+    
+//    static int select_choice = 0;
+    
+    std::vector<std::string> item_names = module_data->port_names;
+    
+    const char *current_name = item_names[module_data->select_choice].c_str();
 
+    if (ImGui::BeginCombo("##hidelabel", current_name)) // The second parameter is the label previewed before opening the combo.
+    {
+        for (int n = 0; n < item_names.size(); n++)
+        {
+            bool is_selected = (current_name == item_names[n].c_str()); // You can store your selection however you want, outside or inside your objects
+            if (ImGui::Selectable(item_names[n].c_str(), is_selected))
+            {
+                current_name = item_names[n].c_str();
+//                print(current_name, "selected", n);
+//                module_data->midiin_ptr->openPort(n);
+                try
+                {
+                    module_data->midiin_ptr->closePort();
+
+                    module_data->midiin_ptr->openPort(n);
+                    module_data->midiin_ptr->setCallback(&midiCallback, module_data);
+                    module_data->select_choice = n;
+                }
+                catch (RtMidiError &err)
+                {
+                    err.printMessage();
+                    // return 1;
+                }
+            }
+        }
+        ImGui::EndCombo();
+    }
+    
     ImNodes::BeginOutputAttribute(node.id);
     ImGui::Text("output");
     ImNodes::EndOutputAttribute();
 
     ImNodes::EndNode();
+    ImGui::PopItemWidth();
 }
 
 void midiCallback(double deltaTime, std::vector<unsigned char> *message, void *pUserData)
@@ -139,7 +182,7 @@ void midiCallback(double deltaTime, std::vector<unsigned char> *message, void *p
     
 //    module_data->notes.clear();
     
-    print("num consumers", module_data->num_consumers);
+//    print("num consumers", module_data->num_consumers);
 
     if (command == 144) {
         MidiNoteMessage noteOnMsg;
@@ -150,10 +193,6 @@ void midiCallback(double deltaTime, std::vector<unsigned char> *message, void *p
         {
             module_data->notesQueue.enqueue(noteOnMsg);
         }
-//            module_data->notes.push_back(noteOnMsg);
-//            module_data->notes.push_back(noteOnMsg);
-
-//        std::cout << module_data->notes.size() << std::endl;
     } else if (command == 128) {
         MidiNoteMessage noteOffMsg;
         noteOffMsg.noteNum = noteNum;
@@ -163,8 +202,6 @@ void midiCallback(double deltaTime, std::vector<unsigned char> *message, void *p
         {
             module_data->notesQueue.enqueue(noteOffMsg);
         }
-//            module_data->notes.push_back(noteOffMsg);
-//            module_data->notes.push_back(noteOffMsg);
 
     }
 

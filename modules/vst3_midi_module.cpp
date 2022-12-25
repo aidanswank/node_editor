@@ -89,7 +89,7 @@ void vst3_midi_module::process(std::stack<void *> &value_stack)
     module_data->continuousSamples += 256;
         
     Steinberg::Vst::EventList *eventList = module_data->vst.eventList(Steinberg::Vst::kInput, 0);
-//    while (true) {
+    if (midi_input_module) { // only deqeue if not null
         MidiNoteMessage note;
         bool hasNotes = midi_input_module->notesQueue.try_dequeue(note);
         if (!hasNotes) {
@@ -119,7 +119,8 @@ void vst3_midi_module::process(std::stack<void *> &value_stack)
             evt.noteOff.noteId = -1;
         }
         eventList->addEvent(evt);
-//    }
+    }
+    
     
     if (!module_data->vst.process(256)) {
             std::cerr << "VST process() failed" << std::endl;

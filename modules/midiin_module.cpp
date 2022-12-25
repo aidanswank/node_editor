@@ -41,6 +41,7 @@ void midiin_module::init(ImVec2 click_pos, example::Graph<Node2> &graph, std::ve
     }
     
     midiin_module_data *module_data = new midiin_module_data;
+    module_data->node_id = ui_node.id;
     
     try
     {
@@ -76,20 +77,36 @@ void midiin_module::process(std::stack<void *> &value_stack)
 {
     midiin_module_data *module_data = (midiin_module_data *)value_stack.top();
     value_stack.pop();
-    
+        
     value_stack.push(module_data);
 }
 
 void midiin_module::show(const uinode2 &node, example::Graph<Node2> &graph)
 {
     ImNodes::BeginNode(node.id);
-
-    ImNodes::BeginNodeTitleBar();
-    char num_str[16];
-    char name[] = "rtmidi input";
-    sprintf(num_str, "%s (%d)", name, node.id);
-    ImGui::TextUnformatted(num_str);
-    ImNodes::EndNodeTitleBar();
+    
+    midiin_module_data *module_data = (midiin_module_data*)graph.node(node.ui[STRUCT_IDX]).value; // store struct in index zero
+    
+//    print("num edges", graph.num_edges_from_node(node.id), "from", node.id);
+    
+//    example::Span<const int> v = graph.neighbors(node.id);
+//    for (auto it = v.begin(); it != v.end(); ++it) {
+//        // if the current index is needed:
+////        auto i = std::distance(v.begin(), it);
+//
+//        // access element as *it
+//        print(*it);
+//
+//        // any code including continue, break, return
+//    }
+//
+//    ImNodes::BeginNodeTitleBar();
+//    char num_str[16];
+//    char name[] = "rtmidi input";
+//    sprintf(num_str, "%s (%d)", name, node.id);
+//    ImGui::TextUnformatted(num_str);
+//    ImNodes::EndNodeTitleBar();
+    DEBUG_NODE_TITLE_BAR(node.type)
 
     ImNodes::BeginOutputAttribute(node.id);
     ImGui::Text("output");
@@ -121,14 +138,18 @@ void midiCallback(double deltaTime, std::vector<unsigned char> *message, void *p
     midiin_module_data *module_data = static_cast<midiin_module_data *>(pUserData);
     
 //    module_data->notes.clear();
+    
+    print("num consumers", module_data->num_consumers);
 
     if (command == 144) {
         MidiNoteMessage noteOnMsg;
         noteOnMsg.noteNum = noteNum;
         noteOnMsg.velocity = static_cast<float>(velocity) / 127.0f;
         noteOnMsg.isNoteOn = true;
-        module_data->notesQueue.enqueue(noteOnMsg);
-//        module_data->notesQueue.enqueue(noteOnMsg);
+        for(int i = 0; i < module_data->num_consumers; i++)
+        {
+            module_data->notesQueue.enqueue(noteOnMsg);
+        }
 //            module_data->notes.push_back(noteOnMsg);
 //            module_data->notes.push_back(noteOnMsg);
 
@@ -138,8 +159,10 @@ void midiCallback(double deltaTime, std::vector<unsigned char> *message, void *p
         noteOffMsg.noteNum = noteNum;
         noteOffMsg.velocity = static_cast<float>(velocity) / 127.0f;
         noteOffMsg.isNoteOn = false;
-        module_data->notesQueue.enqueue(noteOffMsg);
-//        module_data->notesQueue.enqueue(noteOffMsg);
+        for(int i = 0; i < module_data->num_consumers; i++)
+        {
+            module_data->notesQueue.enqueue(noteOffMsg);
+        }
 //            module_data->notes.push_back(noteOffMsg);
 //            module_data->notes.push_back(noteOffMsg);
 

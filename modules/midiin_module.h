@@ -26,6 +26,9 @@ struct midiin_module_data
 //    std::vector<MidiNoteMessage> notes;
 //    uint64_t continuousSamples = 0;
     moodycamel::ConcurrentQueue<MidiNoteMessage> notesQueue;
+    
+    int node_id;
+    int num_consumers = 0;
 };
 
 double midi2Freq(int n);

@@ -22,7 +22,7 @@ public:
     
     vst3_midi_module()
     {
-        xmodule::type = "vst3 module";
+        xmodule::type = "vst3 instrument";
     }
     
     void init(ImVec2 click_pos, example::Graph<Node2> &graph, std::vector<uinode2> &ui_nodes) override;

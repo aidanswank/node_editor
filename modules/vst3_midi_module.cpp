@@ -45,6 +45,7 @@ void vst3_midi_module::init(ImVec2 click_pos, example::Graph<Node2> &graph, std:
     //push module struct as ui node
     push_value_node(module_data, ui_node, graph);
     
+    // whats expcted to connect
     module_data->midi_input_attr = push_value_node(module_data->midi_input_module, ui_node, graph);
 //    lop_dat->cutoff_input_attr = push_value_node(lop_dat->cutoff_input, ui_node, graph);
 //
@@ -88,20 +89,19 @@ void vst3_midi_module::process(std::stack<void *> &value_stack)
     module_data->continuousSamples += 256;
         
     Steinberg::Vst::EventList *eventList = module_data->vst.eventList(Steinberg::Vst::kInput, 0);
-    while (true) {
+//    while (true) {
         MidiNoteMessage note;
         bool hasNotes = midi_input_module->notesQueue.try_dequeue(note);
         if (!hasNotes) {
-                break;
+//                break;
         }
-        
         Steinberg::Vst::Event evt = {};
         evt.busIndex = 0;
         evt.sampleOffset = 0;
         evt.ppqPosition = currentBeat;
         evt.flags = Steinberg::Vst::Event::EventFlags::kIsLive;
         if (note.isNoteOn) {
-            print("note on");
+//            print("note on");
             evt.type = Steinberg::Vst::Event::EventTypes::kNoteOnEvent;
             evt.noteOn.channel = 0;
             evt.noteOn.pitch = note.noteNum;
@@ -110,7 +110,7 @@ void vst3_midi_module::process(std::stack<void *> &value_stack)
             evt.noteOn.length = 0;
             evt.noteOn.noteId = -1;
         } else {
-            print("note off");
+//            print("note off");
             evt.type = Steinberg::Vst::Event::EventTypes::kNoteOffEvent;
             evt.noteOff.channel = 0;
             evt.noteOff.pitch = note.noteNum;
@@ -119,7 +119,7 @@ void vst3_midi_module::process(std::stack<void *> &value_stack)
             evt.noteOff.noteId = -1;
         }
         eventList->addEvent(evt);
-    }
+//    }
     
     if (!module_data->vst.process(256)) {
             std::cerr << "VST process() failed" << std::endl;
@@ -146,6 +146,8 @@ void vst3_midi_module::process(std::stack<void *> &value_stack)
 void vst3_midi_module::show(const uinode2 &node, example::Graph<Node2> &graph)
 {
     vst3_midi_module_data *module_data = (vst3_midi_module_data*)graph.node(node.ui[STRUCT_IDX]).value; // store struct in index zero
+    
+//    midiin_module_data *midi_input_module_data = (midiin_module_data*)graph.node(node.ui[STRUCT_IDX]).value; // store struct in index zero
 
     const float node_width = 100;
     ImNodes::BeginNode(node.id);

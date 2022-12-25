@@ -274,6 +274,19 @@ public:
                         print("swapped?", start_attr, end_attr);
                     }
                     print("is valid link", start_attr, end_attr);
+                    
+                    Node2 end_node = graph2.node(end_attr);
+                    Node2 start_node = graph2.node(start_attr);
+                    print("end type",end_node.type,"start type",start_node.type);
+                    if(end_node.type=="midi in")
+                    {
+//                        midiin_module_data *module_data = (midiin_module_data*)end_node.value; // store struct in index zero
+                        midiin_module_data *module_data = (midiin_module_data*)graph2.node(end_attr+1).value; // store struct in
+                        module_data->num_consumers++;
+//                        print("midi connected to vst instrument");
+//                        print("add consumer", module_data->num_consumers);
+                    }
+                    
                     graph2.insert_edge(start_attr, end_attr);
                 }
             }

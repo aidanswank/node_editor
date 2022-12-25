@@ -79,16 +79,19 @@ void output_module_process(float* &res, std::stack<void *> &value_stack)
     res = (float*)value_stack.top();
     value_stack.pop();
                     
-//              print("REMAINING NODES!", value_stack.size());
+//    print("REMAINING NODES!", value_stack.size());
+//    std::vector<std::vector<float>> to_be_mixed;
     std::vector<float*> to_be_mixed;
-    for(int i = 0; i < value_stack.size(); i++)
+    int r = value_stack.size();
+    for(int i = 0; i < r; i++)
     {
         float* audio = (float*)value_stack.top();
-        value_stack.pop();
         to_be_mixed.push_back(audio);
+//        print("yo",i);
+        value_stack.pop();
     }
-
-    // adjust gain by knob
+    print("to be mixed sz", to_be_mixed.size());
+//
     for(int i = 0; i < 256; i++)
     {
         // MIXED UP REMAINING NODES
@@ -98,6 +101,7 @@ void output_module_process(float* &res, std::stack<void *> &value_stack)
         }
     }
     
+    // adjust gain by knob
     for(int i = 0; i < 256; i++)
     {
         res[i] *= (*gain_arr); // accessing [0]
